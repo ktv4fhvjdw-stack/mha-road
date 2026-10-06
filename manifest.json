@@ -1,0 +1,10 @@
+{
+  "name": "MHA Road V13",
+  "short_name": "MHA Road V13",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#070a12",
+  "theme_color": "#070a12",
+  "description": "MHA Road V13 — RPG narratif interactif.",
+  "icons": []
+}

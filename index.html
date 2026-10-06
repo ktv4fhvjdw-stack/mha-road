@@ -813,52 +813,142 @@ const EVENTS=[
     };
     const choice=(label,fn)=>[label,fn];
     const choices=[];
+    const mode=i%8;
+    const n=people[i%people.length];
+    const spend=(x)=>{S.energy=Math.max(0,(S.energy||0)-x)};
     if(d.key==='training'){
-      const stat=['force','vitesse','technique','endurance','controle'][i%5];
-      choices.push(choice(['Travailler la puissance','Travailler la vitesse','Perfectionner la technique','Tenir plus longtemps','Chercher le contrôle'][i%5],()=>{modStat(stat,1+(i%3===0?1:0));S.energy-=7+(i%5);return`Tu consacres la séance à ${stat}. Le progrès est modeste, mais régulier.`}));
-      choices.push(choice('Prioriser la sécurité',()=>{modStat('defense',1);S.energy-=4;return'Tu travailles sans brûler tes réserves. Ta régularité progresse.'}));
-      choices.push(choice('Te dépasser',()=>{modStat('courage',1);S.energy-=12;if(chance(.12))S.injuries.general=Math.max(S.injuries.general||0,1);return'Tu repousses tes limites. Le gain est réel, mais le coût aussi.'}));
+      const sets=[
+        [['Chercher la puissance',()=>{modStat('force',1);spend(9);return`Tu transformes la séance en travail explosif. ${title} devient un vrai test de puissance.`}],['Soigner tes appuis',()=>{modStat('technique',1);spend(5);return`Tu répètes les gestes jusqu’à les rendre plus propres. Cette séance corrige une faiblesse précise.`}]],
+        [['Miser sur la vitesse',()=>{modStat('vitesse',1);spend(8);return`Tu privilégies les accélérations courtes. Tu gagnes en réactivité sans chercher la force brute.`}],['Changer de rythme',()=>{modStat('technique',1);modStat('vitesse',1);spend(7);return`Tu changes volontairement de rythme pour devenir moins prévisible.`}]],
+        [['Tenir jusqu’au bout',()=>{modStat('endurance',1);spend(12);return`Tu continues malgré la fatigue. Tu apprends où se situe ta limite.`}],['Préserver tes réserves',()=>{modStat('defense',1);spend(4);return`Tu refuses de gaspiller ton énergie. Ta régularité devient une force.`}]],
+        [['Travailler le contrôle',()=>{modStat('controle',1);S.quirkXP=(S.quirkXP||0)+3;spend(6);return`Tu répètes le mouvement jusqu’à obtenir une réponse plus précise de ton Alter.`}],['Observer tes erreurs',()=>{modStat('intelligence',1);return`Tu analyses tes erreurs au lieu de simplement recommencer.`}]],
+        [['T’entraîner avec un partenaire',()=>{modStat('courage',1);spend(7);return`Le regard d’un partenaire rend l’exercice plus difficile. Tu apprends à agir sous pression.`}],['Inventer une règle',()=>{modStat('technique',1);S.v13.traits.inventive=(S.v13.traits.inventive||0)+1;return`Tu modifies l’exercice pour le rendre plus pertinent pour ton style.`}]],
+        [['Corriger une ancienne erreur',()=>{modStat('technique',1);spend(6);return`Tu reviens volontairement sur une erreur passée et comprends enfin ce qui n’allait pas.`}],['Refuser la routine',()=>{modStat('intelligence',1);spend(5);return`Tu abandonnes ta méthode habituelle et trouves une autre façon de résoudre le problème.`}]],
+        [['Repousser ta limite',()=>{modStat('courage',1);spend(14);if(chance(.12))S.injuries.general=Math.max(S.injuries.general||0,1);return`Tu repousses volontairement ta limite. Le progrès est réel, mais ton corps paie le prix.`}],['T’arrêter à temps',()=>{modStat('defense',1);return`Tu t’arrêtes avant la blessure. Tu apprends aussi à renoncer au bon moment.`}]],
+        [['Mesurer tes progrès',()=>{modStat('intelligence',1);spend(6);return`Tu utilises la séance pour mesurer précisément tes progrès plutôt que chercher un gain immédiat.`}],['Créer une nouvelle technique',()=>{modStat('technique',1);S.quirkXP=(S.quirkXP||0)+4;spend(8);return`Une idée improvisée donne naissance à une piste technique que tu pourrais approfondir.`}]]
+      ];
+      const a=sets[mode]; choices.push(choice(a[0][0],a[0][2]),choice(a[1][0],a[1][2]),choice('Changer complètement de méthode',()=>{modStat(['force','vitesse','technique','endurance','intelligence'][i%5],1);spend(6);return`Tu refuses de répéter le même schéma et adaptes la séance à ce que tu viens de découvrir.`}));
     } else if(d.key==='relation'){
-      const n=people[i%people.length];
-      choices.push(choice('Être disponible',()=>{modRel(n,3);heroChoice();return`Tu prends le temps d’être présent pour ${n}.`}));
-      choices.push(choice('Garder une certaine distance',()=>{modStat('intelligence',1);return'Tu observes avant de t’engager davantage.'}));
-      choices.push(choice('Dire franchement ce que tu penses',()=>{modRel(n,(i%3===0)?5:-2);modStat('courage',1);return`Tu parles franchement à ${n}. La relation gagne en clarté.`}));
+      const sets=[
+        ['L’écouter jusqu’au bout','Poser une question difficile','Proposer ton aide'],['Faire une plaisanterie','Changer de sujet','Parler franchement'],['Partager un souvenir','Garder ton secret','Demander le sien'],['Reconnaître ton erreur','Attendre qu’il fasse le premier pas','Proposer un compromis'],['Défendre cette personne','Rester neutre','Prendre tes distances'],['Inviter à continuer la discussion','Mettre une limite','Laisser du temps'],['Dire ce que tu ressens','Masquer tes doutes','Demander conseil'],['Faire confiance','Vérifier avant d’agir','Refuser de te laisser entraîner']
+      ][mode];
+      choices.push(choice(sets[0],()=>{modRel(n,3);S.v13.traits.social=(S.v13.traits.social||0)+1;return`Tu accordes du temps à ${n}. Cette conversation pourrait compter plus tard.`}));
+      choices.push(choice(sets[1],()=>{modStat('intelligence',1);return`Tu observes attentivement la réaction de ${n} avant de décider jusqu’où aller.`}));
+      choices.push(choice(sets[2],()=>{modRel(n,mode%2?2:-2);modStat('courage',1);return`Tu choisis une position claire avec ${n}. La relation ne pourra pas rester exactement comme avant.`}));
     } else if(d.key==='social'){
-      choices.push(choice('Participer',()=>{S.v13.life.social=(S.v13.life.social||0)+1;S.energy-=3;return'Tu participes et rencontres de nouvelles personnes.'}));
-      choices.push(choice('Observer',()=>{modStat('intelligence',1);return'Tu préfères comprendre l’ambiance avant de t’exposer.'}));
-      choices.push(choice('Rentrer travailler',()=>{modStat('technique',1);S.energy-=5;return'Tu déclines et consacres ce temps à ta progression.'}));
+      const sets=[['Te mêler au groupe','Rester avec une personne','Partir plus tôt'],['Organiser la sortie','Suivre les autres','Proposer autre chose'],['Faire une nouvelle rencontre','Retrouver un proche','Profiter du calme'],['Dépenser un peu','Économiser','Chercher une activité gratuite'],['Montrer ton côté drôle','Parler sérieusement','Écouter les autres'],['Accepter l’invitation','Demander qui sera présent','Décliner poliment'],['Te faire remarquer','Rester discret','Aider en coulisses'],['Créer un souvenir','Prendre une photo','Garder le moment pour toi']][mode];
+      choices.push(choice(sets[0],()=>{S.v13.life.social=(S.v13.life.social||0)+1;spend(3);modRel(n,2);return`Tu choisis ${sets[0].toLowerCase()}. Ce moment enrichit ta vie en dehors des entraînements.`}));
+      choices.push(choice(sets[1],()=>{modStat('intelligence',1);return`Tu préfères ${sets[1].toLowerCase()}. Tu observes une facette du groupe que tu n’avais pas remarquée.`}));
+      choices.push(choice(sets[2],()=>{modStat('technique',1);spend(4);return`Tu décides de ${sets[2].toLowerCase()}. Ton temps libre devient utile à ta manière.`}));
     } else if(d.key==='alter'){
-      choices.push(choice('Expérimenter',()=>{S.quirkXP=(S.quirkXP||0)+5;modStat('controle',1);S.energy-=8;return'Tu testes une utilisation différente de ton Alter.'}));
-      choices.push(choice('Analyser la limite',()=>{S.quirkXP=(S.quirkXP||0)+3;modStat('intelligence',1);return'Tu cherches d’abord à comprendre pourquoi ton Alter fonctionne ainsi.'}));
-      choices.push(choice('Repousser la limite',()=>{S.quirkXP=(S.quirkXP||0)+7;modStat('courage',1);S.energy-=13;if(chance(.10))S.injuries.general=Math.max(S.injuries.general||0,1);return'Tu forces ton Alter au-delà de son usage habituel.'}));
+      const sets=[['Tester la portée','Tester la précision','Tester la durée'],['Utiliser ton Alter autrement','Chercher une application défensive','Chercher une application de mobilité'],['Accepter le contrecoup','Réduire la puissance','Arrêter avant la limite'],['Reproduire l’expérience','Changer les conditions','Demander à être observé'],['Créer une technique','Améliorer une technique existante','Abandonner cette piste'],['Combiner deux usages','Simplifier ton utilisation','Tenter quelque chose d’inédit'],['Explorer la sensation','Chercher son origine','La laisser passer'],['Prendre un risque calculé','Rester prudent','Préparer une solution de secours']][mode];
+      choices.push(choice(sets[0],()=>{S.quirkXP=(S.quirkXP||0)+5;modStat('controle',1);spend(7);return`Tu ${sets[0].toLowerCase()}. Ton Alter répond différemment de ce que tu pensais.`}));
+      choices.push(choice(sets[1],()=>{S.quirkXP=(S.quirkXP||0)+3;modStat('intelligence',1);return`Tu cherches une utilisation plus subtile. Une nouvelle piste apparaît.`}));
+      choices.push(choice(sets[2],()=>{S.quirkXP=(S.quirkXP||0)+7;modStat('courage',1);spend(12);if(chance(.10))S.injuries.general=Math.max(S.injuries.general||0,1);return`Tu choisis ${sets[2].toLowerCase()}. Le résultat est intéressant, mais le contrecoup te rappelle que ton Alter a des limites.`}));
     } else if(d.key==='support'){
-      choices.push(choice('Construire',()=>{S.money=Math.max(0,(S.money||0)-30);S.equipment=S.equipment||[];S.equipment.push(`Prototype ${i+1}`);modStat('intelligence',1);return'Tu investis dans une amélioration concrète.'}));
-      choices.push(choice('Optimiser sans acheter',()=>{modStat('technique',1);return'Tu trouves une solution avec les ressources déjà disponibles.'}));
-      choices.push(choice('Demander conseil',()=>{modRel('Momo',2);return'Tu apprends auprès de quelqu’un de plus expérimenté.'}));
+      const sets=[['Construire un prototype','Réparer ton matériel','Observer un ingénieur'],['Améliorer la mobilité','Renforcer la protection','Réduire le poids'],['Économiser tes ressources','Acheter une pièce utile','Recycler du matériel'],['Tester sans risque','Faire un essai réel','Demander une simulation'],['Personnaliser ton équipement','Copier une solution existante','Créer quelque chose de nouveau'],['Travailler seul','Demander l’avis de Momo','Présenter ton idée'],['Privilégier la fiabilité','Chercher la performance','Accepter un compromis'],['Transformer un échec en prototype','Repartir de zéro','Conserver l’idée pour plus tard']][mode];
+      choices.push(choice(sets[0],()=>{S.money=Math.max(0,(S.money||0)-(mode%3===0?30:10));S.equipment=S.equipment||[];S.equipment.push(`Prototype ${i+1}`);modStat('intelligence',1);return`Tu choisis de ${sets[0].toLowerCase()}. Ton équipement devient progressivement une extension de ton style.`}));
+      choices.push(choice(sets[1],()=>{modStat('technique',1);return`Tu travailles sur ${sets[1].toLowerCase()}. Tu cherches l’efficacité plutôt que l’apparence.`}));
+      choices.push(choice(sets[2],()=>{modRel('Momo',2);modStat('intelligence',1);return`Tu décides de ${sets[2].toLowerCase()}. L’expérience t’apporte une solution inattendue.`}));
     } else if(d.key==='mission'){
-      choices.push(choice('Prioriser les civils',()=>{S.rep+=2;S.publicRep+=2;modStat('courage',1);return'Tu places la sécurité des civils avant le résultat spectaculaire.'}));
-      choices.push(choice('Analyser d’abord',()=>{modStat('intelligence',1);modStat('technique',1);return'Tu prends quelques secondes pour comprendre la situation.'}));
-      choices.push(choice('Prendre l’initiative',()=>{S.rep+=3;modStat('courage',1);S.energy-=8;return'Tu assumes la responsabilité de la décision.'}));
+      const sets=[['Évacuer d’abord','Observer les issues','Attendre les professionnels'],['Poursuivre la menace','Protéger un témoin','Bloquer le passage'],['Prendre le commandement','Suivre les consignes','Créer un plan alternatif'],['Utiliser ton Alter immédiatement','Conserver tes forces','Chercher un avantage environnemental'],['Secourir le blessé','Sécuriser la zone','Chercher l’origine du danger']],
+      set=sets[mode%sets.length];
+      choices.push(choice(set[0],()=>{S.rep+=2;S.publicRep+=1;modStat('courage',1);spend(7);return`Tu choisis de ${set[0].toLowerCase()}. La priorité donnée à cette décision sera retenue dans ton dossier.`}));
+      choices.push(choice(set[1],()=>{modStat('intelligence',1);modStat('technique',1);return`Tu préfères ${set[1].toLowerCase()}. L’approche est moins spectaculaire, mais plus maîtrisée.`}));
+      choices.push(choice(set[2],()=>{S.rep+=3;modStat('courage',1);spend(9);return`Tu décides de ${set[2].toLowerCase()}. Tu assumes les conséquences de ton initiative.`}));
     } else if(d.key==='reputation'){
-      choices.push(choice('Assumer',()=>{S.publicRep+=2;S.rep+=1;return'Tu assumes ton image au lieu de la fuir.'}));
-      choices.push(choice('Rester discret',()=>{modStat('controle',1);return'Tu refuses de laisser ta réputation dicter tes décisions.'}));
-      choices.push(choice('Transformer cela en opportunité',()=>{S.rep+=3;return'Tu utilises l’attention pour ouvrir une nouvelle possibilité.'}));
+      const sets=[['Assumer publiquement','Rester discret','Répondre avec humour'],['Corriger la rumeur','Ne rien confirmer','Faire parler tes résultats'],['Accepter l’attention','La détourner vers ton équipe','T’en éloigner'],['Donner une interview','Refuser de répondre','Choisir tes mots avec soin'],['Transformer l’erreur en leçon','Te défendre','Présenter des excuses'],['Construire une image sérieuse','Montrer ton côté humain','Ne rien jouer du tout'],['Accepter l’invitation','Vérifier qui l’envoie','La refuser'],['Faire confiance à ton dossier','Créer une nouvelle preuve','Laisser le temps parler']][mode];
+      choices.push(choice(sets[0],()=>{S.publicRep+=2;S.rep+=1;return`Tu choisis de ${sets[0].toLowerCase()}. Ton image commence à évoluer dans cette direction.`}));
+      choices.push(choice(sets[1],()=>{modStat('controle',1);return`Tu décides de ${sets[1].toLowerCase()}. Tu refuses de laisser la réputation remplacer tes actes.`}));
+      choices.push(choice(sets[2],()=>{S.rep+=3;return`Tu préfères ${sets[2].toLowerCase()}. Cette décision pourrait ouvrir une opportunité plus tard.`}));
     } else if(d.key==='life'){
-      choices.push(choice('T’en occuper immédiatement',()=>{S.v13.life.health=Math.max(0,(S.v13.life.health||100)-1);return'Tu règles le problème avant qu’il ne prenne de l’ampleur.'}));
-      choices.push(choice('Reporter pour travailler',()=>{S.money=(S.money||0)+20;S.v13.life.work=(S.v13.life.work||0)+1;return'Tu gagnes un peu d’argent, mais repousses le problème.'}));
-      choices.push(choice('Demander de l’aide',()=>{modRel(people[(i+2)%people.length],2);return'Tu acceptes de ne pas tout gérer seul.'}));
+      const sets=[['Régler le problème maintenant','Reporter pour travailler','Demander de l’aide'],['Prendre une journée de repos','Faire quelques heures supplémentaires','Organiser ton temps'],['Acheter le nécessaire','Attendre une promotion','Trouver une alternative'],['Passer du temps en famille','T’isoler pour récupérer','Faire quelque chose d’utile'],['Changer une mauvaise habitude','Continuer comme avant','Fixer un objectif simple'],['Accepter la dépense','Chercher moins cher','Renoncer à l’achat'],['Faire passer ta vie avant l’entraînement','Maintenir ton programme','Adapter ton planning'],['Prendre le temps de réfléchir','Agir immédiatement','Demander un avis']][mode];
+      choices.push(choice(sets[0],()=>{S.v13.life.health=Math.max(0,(S.v13.life.health||100)-1);return`Tu choisis de ${sets[0].toLowerCase()}. Le problème est traité avant de devenir plus important.`}));
+      choices.push(choice(sets[1],()=>{S.money=(S.money||0)+20;S.v13.life.work=(S.v13.life.work||0)+1;return`Tu préfères ${sets[1].toLowerCase()}. Tu gagnes quelque chose, mais ton temps disponible diminue.`}));
+      choices.push(choice(sets[2],()=>{modRel(people[(i+2)%people.length],2);return`Tu décides de ${sets[2].toLowerCase()}. Tu n’es pas obligé de tout porter seul.`}));
     } else if(d.key==='mind'){
-      choices.push(choice('En tirer une leçon',()=>{modStat('intelligence',1);return'Tu transformes cette réflexion en apprentissage.'}));
-      choices.push(choice('Suivre ton instinct',()=>{modStat('courage',1);S.hidden.inheritScore+=1;return'Tu décides de faire confiance à ce que tu ressens.'}));
-      choices.push(choice('Ne rien changer',()=>{modStat('controle',1);return'Tu préfères consolider tes habitudes avant de bouleverser ton parcours.'}));
+      const sets=[['Transformer cela en leçon','Accepter que tu as changé','Chercher ce que tu aurais pu faire autrement'],['Faire confiance à ton instinct','Chercher une preuve','Attendre avant de décider'],['Assumer ta peur','La combattre immédiatement','Apprendre à vivre avec'],['Changer de priorité','Renforcer ta voie actuelle','Explorer une possibilité inattendue'],['Revenir sur une ancienne décision','La laisser derrière toi','En parler à quelqu’un'],['Te fixer une limite','Te demander davantage','Changer de méthode'],['Écrire ce que tu veux devenir','Ne rien planifier','Choisir une petite étape'],['Accepter le prix à payer','Chercher une autre solution','Refuser de payer ce prix']][mode];
+      choices.push(choice(sets[0],()=>{modStat('intelligence',1);return`Tu choisis de ${sets[0].toLowerCase()}. Cette réflexion change légèrement ta manière d’aborder les prochaines situations.`}));
+      choices.push(choice(sets[1],()=>{modStat('courage',1);S.hidden.inheritScore+=1;return`Tu décides de ${sets[1].toLowerCase()}. Tu assumes davantage ta propre manière de penser.`}));
+      choices.push(choice(sets[2],()=>{modStat('controle',1);return`Tu préfères ${sets[2].toLowerCase()}. Rien ne change immédiatement, mais ton état d’esprit évolue.`}));
     } else if(d.key==='school'){
-      choices.push(choice('Travailler sérieusement',()=>{modStat('intelligence',1);S.schoolResults.academic+=2;return'Tu prends le travail au sérieux.'}));
-      choices.push(choice('Chercher une solution créative',()=>{modStat('technique',1);S.schoolResults.practical+=2;return'Tu proposes une approche différente.'}));
-      choices.push(choice('Aider le groupe',()=>{modStat('courage',1);S.schoolResults.behavior+=2;heroChoice();return'Tu privilégies la réussite collective.'}));
+      const sets=[['Travailler sérieusement','Chercher une méthode plus rapide','Demander de l’aide'],['Prendre la tête du groupe','Soutenir un camarade','Travailler en autonomie'],['Répondre immédiatement','Prendre quelques secondes','Observer les autres avant d’agir'],['Faire tes recherches','Tester par toi-même','Contester la méthode'],['Accepter la responsabilité','La partager','Proposer quelqu’un d’autre'],['Viser la meilleure note','Chercher à comprendre','Aider ceux qui bloquent'],['Présenter ton idée','Laisser un autre élève parler','Construire un compromis'],['Recommencer l’exercice','Demander pourquoi tu as échoué','Changer complètement d’approche']][mode];
+      choices.push(choice(sets[0],()=>{modStat('intelligence',1);S.schoolResults.academic+=2;return`Tu décides de ${sets[0].toLowerCase()}. Ton travail porte ses fruits sur le long terme.`}));
+      choices.push(choice(sets[1],()=>{modStat('technique',1);S.schoolResults.practical+=2;return`Tu choisis de ${sets[1].toLowerCase()}. Ta façon de travailler devient plus personnelle.`}));
+      choices.push(choice(sets[2],()=>{modStat('courage',1);S.schoolResults.behavior+=2;heroChoice();return`Tu préfères ${sets[2].toLowerCase()}. Le professeur remarque ton comportement.`}));
     }
     EVENTS.push({id,type:d.type,title,weight:d.weight+(i%5)*.15,need,text:()=>`${title}. La situation dépend de ton parcours actuel, de ton état et de ce qui s’est déjà produit cette saison.`,choices});
   }
   V13_EVENT_DOMAINS.forEach(d=>d.titles.forEach((t,i)=>addDynamicEvent(d,i,t)));
+})();
+
+
+/* ================= V13 CHOICE DIVERSITY LAYER =================
+   Reworks generated V13 events so the three answers represent genuinely
+   different approaches, not three phrasings of the same action.
+=============================================================== */
+(function(){
+  const domains={
+    'École':[
+      ['Prendre les devants','Tu prends la responsabilité de la situation et acceptes d’être jugé sur le résultat.',()=>{S.schoolResults.behavior+=2;S.hidden.inheritScore+=1;modStat('courage',1);return 'Tu prends les devants. Tout le monde sait désormais que tu assumes les conséquences de tes décisions.'}],
+      ['Chercher la meilleure solution','Tu prends le temps d’analyser avant d’agir, même si cela te fait perdre un peu de temps.',()=>{S.schoolResults.academic+=2;modStat('intelligence',1);return 'Tu analyses les possibilités avant de choisir. Ta décision est moins spectaculaire, mais beaucoup plus réfléchie.'}],
+      ['Faire progresser les autres','Tu privilégies le groupe et aides quelqu’un à trouver sa propre solution.',()=>{S.schoolResults.practical+=1;S.hidden.selflessCount=(S.hidden.selflessCount||0)+1;modRel('Izuku',2);return 'Tu aides plutôt que de chercher à être le seul à réussir. Cette attitude sera remarquée.'}]
+    ],
+    'Entraînement':[
+      ['Forcer tes limites','Tu augmentes volontairement l’intensité pour voir jusqu’où ton corps peut aller.',()=>{spend(10);modStat('force',1);modStat('endurance',1);S.hidden.sacrificeCount=(S.hidden.sacrificeCount||0)+1;return 'Tu repousses tes limites. Le gain est réel, mais ton corps paie une partie du prix.'}],
+      ['Travailler la technique','Tu ralentis l’exercice pour comprendre précisément ce qui fonctionne.',()=>{modStat('technique',2);modStat('controle',1);return 'Tu privilégies la maîtrise. Tu repars avec une meilleure compréhension de tes mouvements.'}],
+      ['Changer complètement d’approche','Tu abandonnes le protocole prévu et cherches une solution adaptée à tes propres forces.',()=>{modStat('intelligence',1);modStat('vitesse',1);S.hidden.inventive=(S.hidden.inventive||0)+1;return 'Tu refuses de répéter mécaniquement le même exercice. Une méthode plus personnelle commence à apparaître.'}]
+    ],
+    'Relation':[
+      ['Dire franchement ce que tu penses','Tu prends le risque d’une conversation honnête.',()=>{modRel('Katsuki',1);S.v13.traits.social=(S.v13.traits.social||0)+1;return 'Tu parles sans détour. La conversation est parfois inconfortable, mais elle clarifie la relation.'}],
+      ['Écouter sans juger','Tu laisses l’autre parler et cherches à comprendre avant de répondre.',()=>{modRel('Ochaco',2);S.hidden.selflessCount=(S.hidden.selflessCount||0)+1;return 'Tu écoutes réellement. L’autre repart avec le sentiment d’avoir été compris.'}],
+      ['Poser une limite','Tu refuses de laisser la situation décider à ta place.',()=>{modStat('courage',1);S.v13.traits.caution=(S.v13.traits.caution||0)+1;return 'Tu poses clairement ta limite. La relation évoluera peut-être, mais elle devient plus honnête.'}]
+    ],
+    'Social':[
+      ['T’intégrer au groupe','Tu acceptes de participer pleinement, même si ce n’est pas ton environnement habituel.',()=>{S.v13.life.social=(S.v13.life.social||0)+1;spend(3);modStat('courage',1);return 'Tu fais l’effort de t’intégrer. Tu repars avec de nouveaux souvenirs et de nouvelles habitudes sociales.'}],
+      ['Observer avant de participer','Tu restes en retrait pour comprendre les personnes et l’ambiance.',()=>{modStat('intelligence',1);S.v13.traits.caution=(S.v13.traits.caution||0)+1;return 'Tu observes beaucoup avant de t’impliquer. Tu comprends mieux les dynamiques du groupe.'}],
+      ['Créer ton propre moment','Tu proposes une activité différente et entraînes quelques personnes avec toi.',()=>{S.v13.life.social=(S.v13.life.social||0)+2;S.v13.traits.leadership=(S.v13.traits.leadership||0)+1;return 'Tu prends l’initiative. Au lieu de suivre le groupe, tu crées quelque chose dont on parlera.'}]
+    ],
+    'Alter':[
+      ['Chercher la maîtrise','Tu réduis volontairement la puissance pour comprendre exactement ce que ton Alter peut faire.',()=>{S.quirkXP=(S.quirkXP||0)+6;modStat('controle',2);return 'Tu privilégies le contrôle. Une partie de ton Alter devient plus prévisible.'}],
+      ['Chercher une nouvelle application','Tu détournes ton Alter de son utilisation habituelle.',()=>{S.quirkXP=(S.quirkXP||0)+8;modStat('technique',1);S.hidden.inventive=(S.hidden.inventive||0)+2;return 'Tu trouves une utilisation à laquelle tu n’avais pas pensé. Ton Alter devient plus polyvalent.'}],
+      ['Prendre un risque calculé','Tu acceptes de pousser ton Alter au-delà de sa zone de confort.',()=>{S.quirkXP=(S.quirkXP||0)+10;modStat('courage',1);spend(12);if(chance(.12))S.injuries.general=Math.max(S.injuries.general||0,1);return 'Tu pousses ton Alter. Le potentiel est intéressant, mais le contrecoup confirme que cette voie est dangereuse.'}]
+    ],
+    'Réputation':[
+      ['Assumer publiquement','Tu acceptes d’être jugé et réponds directement.',()=>{S.publicRep+=2;S.rep+=2;S.hidden.inheritScore+=1;return 'Tu assumes publiquement ton choix. Certains te respectent davantage, d’autres deviennent plus critiques.'}],
+      ['Laisser les actes parler','Tu refuses de chercher l’attention et préfères produire une nouvelle preuve concrète.',()=>{S.rep+=1;modStat('technique',1);return 'Tu laisses tes résultats parler. Ton image évolue plus lentement, mais sur une base plus solide.'}],
+      ['Retourner la situation à ton avantage','Tu transformes l’attention reçue en opportunité.',()=>{S.publicRep+=1;S.money=(S.money||0)+15;S.v13.traits.leadership=(S.v13.traits.leadership||0)+1;return 'Tu utilises l’attention à ton avantage. Une petite opportunité concrète apparaît.'}]
+    ],
+    'Vie':[
+      ['Privilégier ta vie personnelle','Tu acceptes de ralentir ton parcours héroïque pour régler ce problème.',()=>{spend(3);S.v13.life.health=Math.max(0,(S.v13.life.health||100)+2);return 'Tu consacres du temps à ta vie personnelle. Tu récupères une partie de l’énergie que tu aurais dépensée ailleurs.'}],
+      ['Maintenir tes objectifs','Tu refuses de perdre de vue ton ambition malgré l’imprévu.',()=>{modStat('endurance',1);S.v13.traits.perseverance=(S.v13.traits.perseverance||0)+1;return 'Tu maintiens ton cap malgré les complications. Cela demande un effort supplémentaire.'}],
+      ['Chercher un compromis','Tu modifies ton organisation pour ne sacrifier complètement aucun aspect de ta vie.',()=>{modStat('intelligence',1);S.v13.life.social=(S.v13.life.social||0)+1;return 'Tu réorganises ton temps. Ce n’est pas parfait, mais tu évites de sacrifier une partie entière de ta vie.'}]
+    ],
+    'Support':[
+      ['Construire une solution sur mesure','Tu conçois quelque chose autour de tes propres faiblesses et de ton style.',()=>{if((S.money||0)>=40)S.money-=40;S.equipment=S.equipment||[];S.equipment.push({name:'Prototype personnalisé',bonus:2});modStat('intelligence',1);return 'Tu investis dans une solution conçue pour toi. Ton équipement devient plus personnel.'}],
+      ['Optimiser l’existant','Tu refuses de dépenser inutilement et cherches à améliorer ce que tu possèdes déjà.',()=>{modStat('technique',2);return 'Tu optimises ton matériel actuel. Une petite modification améliore nettement son efficacité.'}],
+      ['Expérimenter quelque chose de risqué','Tu acceptes un prototype imparfait pour découvrir une possibilité nouvelle.',()=>{S.v13.traits.inventive=(S.v13.traits.inventive||0)+2;S.quirkXP=(S.quirkXP||0)+2;return 'L’essai est loin d’être parfait, mais il ouvre une piste que tu n’aurais pas découverte autrement.'}]
+    ],
+    'Mission':[
+      ['Protéger les personnes en priorité','Tu acceptes de perdre du temps si cela augmente les chances de protéger tout le monde.',()=>{S.hidden.rescueCount=(S.hidden.rescueCount||0)+1;S.hidden.selflessCount=(S.hidden.selflessCount||0)+1;S.rep+=2;modStat('courage',1);return 'Tu places les civils avant le reste. La mission prend une autre tournure, mais plusieurs personnes sont hors de danger.'}],
+      ['Comprendre la situation','Tu refuses de foncer et cherches d’abord l’information qui manque.',()=>{modStat('intelligence',2);modStat('technique',1);return 'Tu prends quelques secondes pour comprendre. Une information essentielle apparaît.'}],
+      ['Prendre l’initiative','Tu assumes le risque de décider sans attendre qu’on te donne la solution.',()=>{S.rep+=3;S.publicRep+=1;S.hidden.bravery=(S.hidden.bravery||0)+2;spend(8);return 'Tu prends une décision immédiate. Elle comporte des risques, mais ton initiative change le déroulement de la mission.'}]
+    ],
+    'Réflexion':[
+      ['Accepter ce que tu ne contrôles pas','Tu reconnais une limite au lieu de chercher à tout maîtriser.',()=>{modStat('controle',1);S.v13.traits.caution=(S.v13.traits.caution||0)+1;return 'Tu acceptes une limite. Cela ne résout rien immédiatement, mais ton regard sur la situation devient plus lucide.'}],
+      ['Transformer le doute en objectif','Tu convertis ton malaise en quelque chose de concret à travailler.',()=>{modStat('intelligence',1);modStat('courage',1);S.v13.traits.perseverance=(S.v13.traits.perseverance||0)+1;return 'Tu transformes le doute en objectif. Tu sais maintenant ce que tu veux améliorer.'}],
+      ['Changer de direction','Tu admets que la voie actuelle ne correspond peut-être plus à ce que tu veux devenir.',()=>{S.v13.traits.independent=(S.v13.traits.independent||0)+2;S.hidden.independentScore=(S.hidden.independentScore||0)+2;return 'Tu envisages sérieusement une autre voie. Une possibilité que tu ignorais commence à prendre de la place.'}]
+    ]
+  };
+  const pools=domains;
+  EVENTS.filter(e=>e.id&&e.id.startsWith('v13-')).forEach((e)=>{
+    const pool=pools[e.type];
+    if(!pool)return;
+    const num=parseInt((e.id.match(/-(\d+)$/)||['',0])[1],10)||0;
+    const shift=num%pool.length;
+    const picked=[pool[shift%pool.length],pool[(shift+1)%pool.length],pool[(shift+2)%pool.length]];
+    e.choices=picked.map(([label,desc,fn])=>[label,()=>{const r=fn();return `${desc} ${r}`}]);
+  });
 })();
 
 function revealQuirk(){
@@ -2051,3 +2141,117 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 </script>
 </body>
 </html>
+<!-- V13 DEPTH / CONSEQUENCE LAYER -->
+<script>
+(function(){
+  const V13D={
+    consequenceEvents:[],
+    ensure(){
+      S.v13d=S.v13d||{};
+      S.v13d.choiceStyle=S.v13d.choiceStyle||{risk:0,analysis:0,care:0,independence:0};
+      S.v13d.flags=S.v13d.flags||{};
+      S.v13d.echoes=S.v13d.echoes||[];
+      S.v13d.choiceLog=S.v13d.choiceLog||[];
+      S.v13d.recentDomains=S.v13d.recentDomains||[];
+    },
+    classify(label){
+      const t=(label||'').toLowerCase();
+      if(/forcer|risque|attaq|provoqu|foncer|tout donner|défier|sacrifice|brute/.test(t))return 'risk';
+      if(/analys|observer|preuve|réfléch|stratég|comprendre|étudier|attendre|prudent/.test(t))return 'analysis';
+      if(/aider|protéger|soutenir|coopér|confiance|secour|partager|camarade/.test(t))return 'care';
+      if(/autonom|indépend|refuser|seul|improvis|changer|voie personnelle/.test(t))return 'independence';
+      return null;
+    },
+    note(label,result,eventId){
+      this.ensure();
+      const style=this.classify(label);
+      if(style)this.Sstyle(style);
+      const important=!!(style||/rival|ami|bless|alter|stage|mission|festival|prof|villain|héros/i.test((result||'')+' '+(label||'')));
+      if(important){
+        this.Sstyle('');
+        S.v13d.choiceLog.unshift({day:S.day,season:seasonName(),event:eventId,label,result:result||'',style:style||'neutral'});
+        S.v13d.choiceLog=S.v13d.choiceLog.slice(0,30);
+      }
+      this.updateFlags(label,result);
+    },
+    Sstyle(style){if(style)S.v13d.choiceStyle[style]=(S.v13d.choiceStyle[style]||0)+1},
+    updateFlags(label,result){
+      const t=((label||'')+' '+(result||'')).toLowerCase();
+      if(/aider|protéger|secour/.test(t))S.v13d.flags.helpful=true;
+      if(/refus|refuser|seul|indépend/.test(t))S.v13d.flags.independent=true;
+      if(/risque|forcer|sacrifice|foncer/.test(t))S.v13d.flags.riskTaker=true;
+      if(/analyser|analyse|observer|preuve|réfléch/.test(t))S.v13d.flags.analytical=true;
+      if(/échec|perds|échoue|raté/.test(t))S.v13d.flags.failure=true;
+      if(/bless/.test(t))S.v13d.flags.injuryMemory=true;
+    },
+    addEchoes(){
+      this.ensure();
+      const E=this.consequenceEvents;
+      if(!E.length){
+        E.push(
+          {id:'v13d_echo_help',type:'Mémoire',title:'Quelqu’un se souvient de ton aide',weight:3,need:()=>S.v13d.flags.helpful&&S.day>2,text:()=>`Une personne que tu as aidée récemment revient vers toi. Elle n’a pas oublié ce que tu as fait.`,choices:[
+            ['Prendre le temps de l’écouter',()=>{modRel('Izuku',2);remember('Conséquence','Ton aide passée a créé un lien durable.');return 'Tu prends le temps de l’écouter. Le lien devient plus personnel.'}],
+            ['Lui proposer une solution',()=>{modStat('intelligence',1);return 'Tu cherches immédiatement une solution concrète. On te voit désormais comme quelqu’un de fiable.'}],
+            ['Lui dire de se débrouiller',()=>{S.rep-=1;return 'Tu refuses de devenir son soutien permanent. Cette limite peut changer votre relation.'}]
+          ]},
+          {id:'v13d_echo_risk',type:'Mémoire',title:'Le prix d’une ancienne prise de risque',weight:3,need:()=>S.v13d.flags.riskTaker&&S.day>3,text:()=>`Un professeur revient sur une décision risquée que tu avais prise. Il veut savoir si tu as appris quelque chose.`,choices:[
+            ['Assumer et recommencer autrement',()=>{modStat('courage',1);return 'Tu assumes ton erreur sans renier ton audace. Le professeur semble apprécier cette maturité.'}],
+            ['Expliquer ton raisonnement',()=>{modStat('intelligence',1);return 'Tu expliques précisément pourquoi tu avais pris ce risque. La discussion devient instructive.'}],
+            ['Dire que tu recommencerais',()=>{modStat('courage',1);S.rep+=1;return 'Tu assumes complètement ton choix. Certains admirent ton aplomb, d’autres commencent à te surveiller.'}]
+          ]},
+          {id:'v13d_echo_analysis',type:'Mémoire',title:'Ton analyse commence à être reconnue',weight:3,need:()=>S.v13d.flags.analytical&&S.day>3,text:()=>`On te demande ton avis avant une décision importante. Tes précédentes analyses ont laissé une impression.`,choices:[
+            ['Donner une analyse complète',()=>{modStat('intelligence',1);return 'Tu exposes calmement les risques et les options. Ton avis gagne en poids.'}],
+            ['Demander plus d’informations',()=>{modStat('technique',1);return 'Tu refuses de conclure trop vite. Cette prudence te donne accès à de nouvelles informations.'}],
+            ['Laisser les autres décider',()=>{modStat('courage',1);return 'Tu choisis de ne pas porter la décision seul. Cette retenue est remarquée.'}]
+          ]},
+          {id:'v13d_echo_failure',type:'Mémoire',title:'Ton ancien échec revient sur la table',weight:2,need:()=>S.v13d.flags.failure&&S.day>4,text:()=>`Une nouvelle situation ressemble étrangement à un échec précédent. Cette fois, tu peux agir autrement.`,choices:[
+            ['Reproduire ton ancienne méthode',()=>{modStat('courage',1);return 'Tu assumes que ta méthode peut fonctionner si tu la pousses davantage.'}],
+            ['Changer complètement d’approche',()=>{modStat('intelligence',1);modStat('technique',1);return 'Tu refuses de répéter le passé et changes de méthode.'}],
+            ['Demander de l’aide',()=>{S.hidden.selflessCount=(S.hidden.selflessCount||0)+1;return 'Tu demandes de l’aide au lieu de laisser l’échec décider à ta place.'}]
+          ]},
+          {id:'v13d_injury_echo',type:'Mémoire',title:'Une ancienne blessure se rappelle à toi',weight:2,need:()=>S.v13d.flags.injuryMemory&&S.day>3,text:()=>`Une douleur familière apparaît pendant l’effort. Rien de grave pour l’instant, mais ton corps te rappelle ses limites.`,choices:[
+            ['Ralentir et protéger la zone',()=>{S.energy=clamp(S.energy+4,0,100);return 'Tu adaptes ton rythme. Tu gagnes moins aujourd’hui, mais tu évites d’aggraver la situation.'}],
+            ['Continuer malgré la douleur',()=>{S.energy=clamp(S.energy-8,0,100);modStat('endurance',1);return 'Tu continues. Ton endurance progresse, mais le risque augmente.'}],
+            ['Repenser complètement ton entraînement',()=>{modStat('technique',1);return 'Tu transformes la contrainte en problème technique et cherches une nouvelle méthode.'}]
+          ]}
+        );
+        E.forEach(e=>{if(!EVENTS.some(x=>x.id===e.id))EVENTS.push(e)});
+      }
+    }
+  };
+  V13D.ensure(); V13D.addEchoes();
+  const baseChoose=choose;
+  choose=function(index){
+    const ev=currentEvent; const choice=ev&&ev.choices&&ev.choices[index];
+    const label=choice&&choice[0]||'';
+    const beforeLog=S.v13d?.choiceLog?.length||0;
+    baseChoose(index);
+    try{V13D.ensure();V13D.note(label,(S.logs&&S.logs[0])||'',ev&&ev.id);}
+    catch(e){console.warn('V13 depth choice',e)}
+    saveGame();
+  };
+  const baseGenerate=generateEvent;
+  generateEvent=function(isFinale){
+    V13D.ensure(); V13D.addEchoes();
+    if(!isFinale){
+      const eligible=EVENTS.filter(e=>{try{return e.type==='Mémoire'&&compatible(e)&&!(S.seen&&S.seen[e.id])}catch(_){return false}});
+      if(eligible.length && chance(.24)){
+        currentEvent=pick(eligible);
+        S.currentEventId=currentEvent.id;S.currentEventState={day:S.day,phase:S.phase,renderedAt:Date.now()};
+        S.recentEvents=S.recentEvents||[];S.recentEvents.push(currentEvent.id);if(S.recentEvents.length>30)S.recentEvents.shift();
+        S.weekEventIds=S.weekEventIds||[];S.weekEventIds.push(currentEvent.id);
+        return;
+      }
+    }
+    baseGenerate(isFinale);
+  };
+  // Make repeated domains less likely when the engine has alternatives.
+  const baseRender=render;
+  render=function(){
+    try{V13D.ensure();}
+    catch(e){}
+    baseRender();
+  };
+  window.MHA_V13_DEPTH=V13D;
+})();
+</script>
