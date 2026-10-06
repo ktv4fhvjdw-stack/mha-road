@@ -1875,14 +1875,57 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
   const oldReveal=window.revealQuirk||revealQuirk;
   window.revealQuirk=function(){return reveal()};
   const oldGenerate=generateEvent;
+  // V13 event director: strong anti-loop selection with context + history.
+  function v13PickEvent(){
+    if(!S)return null;
+    const all=EVENTS.filter(e=>{try{return compatible(e)}catch(_){return false}});
+    if(!all.length)return null;
+    S.recentEvents=S.recentEvents||[];
+    const recent=new Set(S.recentEvents.slice(-10));
+    const older=new Map();
+    S.recentEvents.forEach((id,i)=>older.set(id,i));
+    let pool=all.filter(e=>!recent.has(e.id));
+    // If the context has very few events, prefer the least recently seen instead of looping.
+    if(!pool.length){
+      const ranked=all.slice().sort((a,b)=>(older.get(a.id)??-999)-(older.get(b.id)??-999));
+      pool=ranked.slice(0,Math.min(4,ranked.length));
+    }
+    const weighted=[];
+    pool.forEach(e=>{
+      let w=Math.max(.15,e.weight||1);
+      if(e.type==='Collège'&&S.schoolStage==='college')w*=2;
+      if(e.type==='École'&&S.schoolStage==='school')w*=2;
+      if(e.type==='Support'&&S.flags?.noQuirk)w*=1.8;
+      if(e.type==='Mission'&&S.career?.path&&S.career.path!=='student')w*=1.4;
+      if(e.type==='Relations'&&S.relations)w*=1.15;
+      // Avoid repeating the same category back-to-back when alternatives exist.
+      const lastId=S.recentEvents.length?S.recentEvents[S.recentEvents.length-1]:null;
+      const last=EVENTS.find(x=>x.id===lastId);
+      if(last&&last.type===e.type&&pool.some(x=>x.type!==last.type))w*=.45;
+      for(let i=0;i<Math.max(1,Math.round(w*2));i++)weighted.push(e);
+    });
+    return pick(weighted)||pool[0];
+  }
   generateEvent=function(isFinale=false){
     init();
-    if(!isFinale){
-      const special=maybeSecretAFO()||afoOffer()||uniqueEvent()||discoveryEvent();
-      if(special&&chance(.72)){currentEvent=special;S.currentEventId=special.id;S.currentEventState={day:S.day,phase:S.phase,renderedAt:Date.now()};return;}
-      if(chance(.10)){const life=lifeEvent();if(life){currentEvent=life;S.currentEventId=life.id;S.currentEventState={day:S.day,phase:S.phase,renderedAt:Date.now()};return;}}
+    if(isFinale){oldGenerate(true);return;}
+    const special=maybeSecretAFO()||afoOffer()||uniqueEvent()||discoveryEvent();
+    // Special Alter/secret events are protected from spam: once shown, their id enters history.
+    if(special&&chance(.55)){
+      currentEvent=special;
+    }else if(chance(.08)){
+      const life=lifeEvent();
+      currentEvent=life||v13PickEvent();
+    }else{
+      currentEvent=v13PickEvent();
     }
-    oldGenerate(isFinale);
+    if(!currentEvent)return;
+    S.currentEventId=currentEvent.id;
+    S.currentEventState={day:S.day,phase:S.phase,renderedAt:Date.now()};
+    S.recentEvents=S.recentEvents||[];
+    S.recentEvents.push(currentEvent.id);
+    if(S.recentEvents.length>30)S.recentEvents.shift();
+    S.weekEventIds=S.weekEventIds||[];S.weekEventIds.push(currentEvent.id);
   };
   const oldChoose=choose;
   choose=function(index){
