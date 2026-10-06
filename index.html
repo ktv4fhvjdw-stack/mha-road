@@ -1033,7 +1033,7 @@ function renderCareer(){
  ${S.mission?`<div class="notice warning"><b>Mission active :</b> ${S.mission.objective} · difficulté ${S.mission.difficulty} · récompense ${S.mission.reward} ¥${S.mission.enemy?` · ${S.mission.enemy}`:""}</div>`:""}
  ${S.villain&&S.villain.active?`<div class="notice warning"><b>Réseau clandestin :</b> ${S.villain.faction||"Sans faction"} · pseudonyme ${S.villain.alias} · notoriété ${S.villain.notoriety} · chaleur ${S.villain.heat} · crimes ${S.villain.crimes} ${S.villain.wanted?"· RECHERCHÉ":""}</div>`:""}
  <div class="notice"><b>Alignement :</b> Héroïque ${S.alignment.hero} · Éthique ${S.alignment.ethics} · Souterrain ${S.alignment.underground} · Criminel ${S.alignment.criminal}</div>
- <div class="small muted">V9.2 étend la carrière sur toute une vie : collège et lycée en semaines jouables, puis carrière adulte en 4 grandes périodes par année. La retraite devient possible de 60 à 70 ans, avec une fin de vie différente selon tes choix.</div>`;
+ <div class="small muted">V10 étend la carrière sur toute une vie : collège et lycée en semaines jouables, puis carrière adulte en 4 grandes périodes par année. La retraite devient possible de 60 à 70 ans, avec une fin de vie différente selon tes choix.</div>`;
 }
 function renderJournal(){q("journalList").innerHTML=S.history.map(x=>`<div class="entry"><b>J${x.day}</b> — ${x.text}</div>`).join("")}
 function tab(id,btn){["story","stats","relations","power","career","journal"].forEach(x=>q(x).classList.add("hidden"));q(id).classList.remove("hidden");document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));btn.classList.add("active")}
