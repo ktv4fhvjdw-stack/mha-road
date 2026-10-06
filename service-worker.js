@@ -1,4 +1,4 @@
-const CACHE='mha-road-v11-20261006-2';
+const CACHE='mha-road-v12.5-20261006-2';
 const CORE=['./','./index.html','./manifest.json','./service-worker.js'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('mha-road-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});

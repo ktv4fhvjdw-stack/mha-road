@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#080d19">
 <link rel="manifest" href="manifest.json">
-<title>MHA Road — V11</title>
+<title>MHA Road — V12</title>
 <style>
 :root{--bg:#070b14;--panel:#111a2b;--panel2:#17233a;--line:#2a3b5d;--txt:#f1f5ff;--muted:#9eacc8;--a:#70a7ff;--good:#58d89a;--bad:#ff7180;--gold:#ffd166;--violet:#9b83ff}
 *{box-sizing:border-box}html,body{margin:0;background:linear-gradient(180deg,#060a12,#0d1526 50%,#070b14);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -59,17 +59,48 @@ input,select{appearance:none;background:#080d16;border:1px solid var(--stroke);b
 label{font-size:11px;text-transform:uppercase;letter-spacing:.09em;font-weight:800;color:#7f8ba2}.creation-shell{margin:18px auto;max-width:760px}.creation-hero{padding:34px 8px 24px}.eyebrow{font-size:11px;font-weight:900;letter-spacing:.18em;color:#8d98ff;margin-bottom:14px}.creation-hero p{color:var(--muted);font-size:16px;line-height:1.6;max-width:650px}.creation-badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:18px}.creation-badges span{font-size:11px;padding:7px 10px;border-radius:999px;background:rgba(124,140,255,.09);border:1px solid rgba(124,140,255,.18);color:#b8c0ff}.creation-panel{padding:20px}.creation-step{display:flex;align-items:center;gap:12px;margin:24px 0 12px}.creation-step>span{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:linear-gradient(135deg,#6677ff,#a66aff);font-size:11px;font-weight:950}.creation-step b{display:block;font-size:15px}.creation-step small{color:var(--muted);font-size:11px}.creation-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field-card{padding:13px;border:1px solid var(--stroke);background:rgba(255,255,255,.025);border-radius:17px}.field-card.field-wide{grid-column:1/-1}.origin-note,.creation-note{padding:13px 14px;border-radius:15px;margin-top:14px;font-size:12px;line-height:1.5}.origin-note{background:rgba(124,140,255,.08);border:1px solid rgba(124,140,255,.16);color:#c8ceff}.creation-note{color:var(--muted);border:1px solid var(--stroke)}.creation-start{width:100%;margin:18px 0 8px;display:flex;justify-content:space-between;align-items:center;font-size:15px}.creation-start span{font-size:22px}.creation-links{display:grid;grid-template-columns:1fr 1fr;gap:8px}.creation-links button{width:100%}
 .hero{padding:20px;border-radius:26px}.res{gap:7px}.res .box{border:1px solid var(--stroke);background:rgba(255,255,255,.025);border-radius:16px;padding:11px}.num{font-size:20px}.tabs{gap:7px;padding:8px 0;border-bottom:1px solid var(--stroke);background:rgba(5,7,13,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}.tabs button{border-color:transparent;background:transparent;color:#8f9bb0;border-radius:12px}.tabs button.active{color:#fff;background:rgba(124,140,255,.14);border-color:rgba(124,140,255,.2)}.choice{background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.025));border:1px solid var(--stroke);min-height:62px}.choice:hover{background:rgba(124,140,255,.12)}.notice{background:rgba(124,140,255,.07);border:1px solid rgba(124,140,255,.14);border-left:3px solid #7c8cff}.action-summary,.weekly-card,.season-v10,.v11-world{border-color:var(--stroke);background:rgba(255,255,255,.035)}.sticky-actions{background:rgba(5,7,13,.88);border-top:1px solid var(--stroke);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
 @media(max-width:700px){.wrap{padding:10px 10px 108px}.creation-hero{padding:28px 4px 18px}.creation-grid{grid-template-columns:1fr}.field-card.field-wide{grid-column:auto}.creation-links{grid-template-columns:1fr}.card{border-radius:20px;padding:15px}.res{grid-template-columns:repeat(2,1fr)}}
+
+/* V12 — RPG mobile shell */
+:root{--v12bg:#05070d;--v12surface:#0c111b;--v12surface2:#121a29;--v12line:rgba(255,255,255,.09);--v12accent:#7d8cff;--v12accent2:#a46cff}
+body{overscroll-behavior-y:none}
+#game{max-width:620px;margin:0 auto;padding-bottom:86px}
+.v12-topbar{position:sticky;top:0;z-index:30;padding:10px 0 9px;background:linear-gradient(180deg,rgba(5,7,13,.98),rgba(5,7,13,.86));backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--v12line)}
+.v12-player{display:flex;align-items:center;gap:10px}
+.v12-avatar{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,#6f82ff,#a15cff);display:grid;place-items:center;font-weight:950;box-shadow:0 8px 24px #6375ff44}
+.v12-player-main{min-width:0;flex:1}.v12-player-main b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v12-player-main span{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v12-hud{display:flex;gap:6px;margin-top:9px}.v12-hud .mini{flex:1;min-width:0;padding:7px 8px;border:1px solid var(--v12line);background:#0a101a;border-radius:11px;font-size:10px;color:var(--muted)}.v12-hud .mini b{display:block;color:#fff;font-size:13px;margin-top:1px}
+.v12-season{margin:10px 0;padding:11px 12px;border:1px solid #2b4269;background:linear-gradient(135deg,#101e34,#0b1220);border-radius:15px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.v12-season strong{font-size:14px}.v12-season small{display:block;color:var(--muted);margin-top:2px}
+.v12-progress{height:5px;background:#050912;border-radius:99px;overflow:hidden;margin-top:7px}.v12-progress>i{display:block;height:100%;background:linear-gradient(90deg,#7187ff,#aa6dff);border-radius:99px}
+.v12-view{display:none}.v12-view.active{display:block}
+.v12-story{background:linear-gradient(145deg,rgba(14,20,33,.98),rgba(8,13,23,.98));border:1px solid var(--v12line);border-radius:22px;padding:18px;box-shadow:0 20px 60px #0004}
+.v12-kicker{font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#9eabff;font-weight:900}.v12-story h2{font-size:23px;line-height:1.12;margin:6px 0 10px}.v12-story p{line-height:1.6;color:#d8deec}
+.v12-nav{position:fixed;left:0;right:0;bottom:0;z-index:40;padding:7px max(8px,env(safe-area-inset-left)) max(7px,env(safe-area-inset-bottom));background:rgba(5,7,13,.94);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--v12line);display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.v12-nav button{margin:0;padding:7px 3px;min-height:50px;background:transparent;color:#78849c;border:1px solid transparent;font-size:10px;font-weight:800}.v12-nav button span{display:block;font-size:18px;margin-bottom:2px}.v12-nav button.active{color:#fff;background:#121b2d;border-color:#2b4167}
+.v12-result{margin-top:12px;padding:14px;border:1px solid #385681;background:linear-gradient(145deg,#12233d,#0b1526);border-radius:17px}
+.v12-result h3{margin:0 0 6px}.v12-result .continue{width:100%;font-size:15px;margin:10px 0 0;background:linear-gradient(135deg,#5c7cff,#8a5ff0)}
+.v12-actions{display:grid;gap:8px;margin-top:14px}.v12-actions .choice{margin:0;min-height:60px}
+.v12-panel{background:rgba(12,17,28,.88);border:1px solid var(--v12line);border-radius:20px;padding:16px;margin:12px 0}
+.v12-grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.v12-info{padding:11px;border:1px solid var(--v12line);border-radius:13px;background:#090f19}.v12-info small{display:block;color:var(--muted)}.v12-info b{display:block;font-size:18px;margin-top:2px}
+.v12-memory{padding:11px;border-left:3px solid #7187ff;background:#0b1321;border-radius:10px;margin:7px 0}.v12-memory small{color:var(--muted)}
+.v12-section-title{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}.v12-section-title h3{margin:0}
+.v12-world-card{padding:12px;border:1px solid #2a4168;border-radius:15px;background:linear-gradient(145deg,#0e1a2d,#0a111d);margin:8px 0}
+.v12-world-card b{display:block}.v12-world-card small{color:var(--muted);line-height:1.45}
+.v12-combat-shell{border:1px solid #613b58!important;background:linear-gradient(145deg,#211525,#0e111c)!important}
+.v12-combat-shell .combat-actions{grid-template-columns:1fr 1fr}
+.v12-empty{padding:24px;text-align:center;color:var(--muted);border:1px dashed #2b3b57;border-radius:16px}
+@media(min-width:700px){#game{max-width:720px}.v12-nav{max-width:620px;left:50%;right:auto;transform:translateX(-50%);border:1px solid var(--v12line);border-bottom:0;border-radius:18px 18px 0 0}.v12-topbar{top:0}}
 </style>
 </head>
 <body>
 <div class="wrap">
 <header class="top">
-  <div><div class="brand">⚡ MHA ROAD <span class="tag">V11</span></div><div class="sub">RPG narratif procédural · monde vivant · saisons · routes divergentes · carrière jusqu’à la retraite · hors ligne</div></div>
+  <div><div class="brand">⚡ MHA ROAD <span class="tag">V12.5</span></div><div class="sub">RPG narratif procédural · monde vivant · saisons · routes divergentes · carrière jusqu’à la retraite · hors ligne</div></div>
   <div><button onclick="saveGame()">💾</button><button onclick="exportSave()">↥</button></div>
 </header>
 
 <section id="menu" class="card menu-hero">
-<div class="top"><div><div class="brand">⚡ MHA ROAD</div><div class="sub">Mode carrière · progression roguelite</div></div><span class="tag">V11</span></div>
+<div class="top"><div><div class="brand">⚡ MHA ROAD</div><div class="sub">Mode carrière · progression roguelite</div></div><span class="tag">V12.5</span></div>
 <div class="grid3" style="margin-top:14px"><div class="metric">🏆<div><span class="small muted">Runs</span><b id="metaRuns">0</b></div></div><div class="metric">☠️<div><span class="small muted">Décès</span><b id="metaDeaths">0</b></div></div><div class="metric">💎<div><span class="small muted">Crédits</span><b id="metaCredits">0</b></div></div></div>
 <div id="lastRun" class="notice" style="display:none"></div><div id="metaAchievements" class="notice" style="display:none"></div>
 <div class="menu-actions"><button class="primary" onclick="showCreation()">▶️ Nouvelle carrière</button><button onclick="showShop()">🛒 Boutique</button><button onclick="importSave()">📥 Importer une partie</button><button onclick="loadGame()">💾 Reprendre la dernière partie</button></div>
@@ -78,7 +109,7 @@ label{font-size:11px;text-transform:uppercase;letter-spacing:.09em;font-weight:8
 <section id="shop" class="card hidden"><div class="top"><div><h2>🛒 Boutique de méta-progression</h2><div class="muted">Les achats deviennent des bonus de départ consommables lors de la prochaine carrière.</div></div><button onclick="showMenu()">← Menu</button></div><div class="metric" style="margin-bottom:10px">💎 Crédits disponibles <b id="shopCredits">0</b></div><div id="shopList" class="shop-grid"></div></section>
 <section id="creation" class="creation-shell">
 <div class="creation-hero">
-<div class="eyebrow">MHA ROAD · V11</div>
+<div class="eyebrow">MHA ROAD · V12.5</div>
 <h1>Construis ton histoire.</h1>
 <p>Tu ne choisis pas une destinée. Tu crées un parcours, et le monde réagit à tes décisions.</p>
 <div class="creation-badges"><span>⚡ Progression dynamique</span><span>🌍 Monde vivant</span><span>🎲 Événements procéduraux</span></div>
@@ -102,49 +133,67 @@ label{font-size:11px;text-transform:uppercase;letter-spacing:.09em;font-weight:8
 </section>
 
 <main id="game" class="hidden">
-<section class="card hero">
-<div class="top"><div><h2 id="heroName"></h2><div id="heroMeta" class="muted"></div></div><div><span id="arcTag" class="tag">Année 1</span></div></div>
-<div class="res">
-<div class="box">❤️ PV<br><span class="num" id="hp"></span></div>
-<div class="box">⚡ Énergie<br><span class="num" id="energy"></span></div>
-<div class="box">⭐ Réputation<br><span class="num" id="rep"></span></div>
-<div class="box">💴 Argent<br><span class="num" id="money"></span></div>
-<div class="box">📅 Jour<br><span class="num" id="day"></span></div>
-</div>
-<div class="timeline" id="timeline"></div>
-</section>
-
-<div class="tabs">
-<button class="active" onclick="tab('story',this)">📖 Histoire</button>
-<button onclick="tab('stats',this)">📊 Stats</button>
-<button onclick="tab('relations',this)">👥 Relations</button>
-<button onclick="tab('power',this)">⚡ Alter</button><button onclick="tab('career',this)">🏆 Carrière</button>
-<button onclick="tab('journal',this)">📜 Journal</button>
+<div class="v12-topbar">
+  <div class="v12-player">
+    <div class="v12-avatar" id="v12Avatar">M</div>
+    <div class="v12-player-main"><b id="heroName"></b><span id="heroMeta"></span></div>
+    <span id="arcTag" class="tag">Année 1</span>
+  </div>
+  <div class="v12-hud">
+    <div class="mini">❤️ PV <b id="hp"></b></div>
+    <div class="mini">⚡ Énergie <b id="energy"></b></div>
+    <div class="mini">⭐ Réputation <b id="rep"></b></div>
+    <div class="mini">💴 Argent <b id="money"></b></div>
+  </div>
 </div>
 
-<section id="story">
-<div class="card">
-<div class="top"><div><div class="muted small" id="date"></div><h2 id="eventTitle"></h2></div><span class="tag" id="eventType"></span></div>
-<p id="eventText"></p><div id="eventChoices" class="event-actions"></div><div id="actionSummary"></div>
+<div id="v12SeasonBar" class="v12-season"></div>
+
+<div id="view-story" class="v12-view active">
+  <section class="v12-story">
+    <div class="v12-kicker" id="eventType"></div>
+    <div class="muted small" id="date"></div>
+    <h2 id="eventTitle"></h2>
+    <p id="eventText"></p>
+    <div id="eventChoices" class="v12-actions"></div>
+    <div id="actionSummary"></div>
+  </section>
+  <div id="combat" class="card hidden v12-combat-shell"></div>
 </div>
-<div id="combat" class="card hidden"></div>
-</section>
 
-<section id="stats" class="card hidden"><h2>Développement</h2><div id="statsList"></div><div class="notice">Les statistiques ne sont pas de simples niveaux : elles modifient les événements, les combats, les options disponibles et certaines routes cachées.</div></section>
-<section id="relations" class="card hidden"><h2>Relations</h2><div id="relationsList"></div></section>
-<section id="power" class="card hidden"><h2>Alter & progression</h2><div id="powerPanel"></div></section>
-<section id="career" class="card hidden"><h2>Carrière & orientation</h2><div id="careerPanel"></div></section>
-<section id="journal" class="card hidden"><h2>Journal</h2><div id="journalList" class="log"></div></section>
+<div id="view-character" class="v12-view">
+  <section class="v12-panel"><div class="v12-section-title"><h2>🧬 Personnage</h2><span class="tag" id="characterRoute"></span></div><div id="characterOverview"></div></section>
+  <section class="v12-panel"><h3>Développement</h3><div id="statsList"></div></section>
+  <section class="v12-panel"><h3>⚡ Alter & progression</h3><div id="powerPanel"></div></section>
+</div>
 
-<section class="card">
-<h3>Actions de la semaine</h3>
-<div id="weeklyActionsPanel"></div><div id="quirklessRoutePanel"></div>
-<button onclick="restDay()">🌙 Récupération</button><button id="retireBtn" class="good hidden" onclick="retireNow()">🏖️ Prendre ma retraite</button>
-<button onclick="saveGame()">💾 Sauvegarder</button>
-<button onclick="exportSave()">📦 Exporter</button>
-<button onclick="importSave()">📥 Importer</button>
-<button class="danger" onclick="newGame()">↻ Nouvelle partie</button>
-</section>
+<div id="view-relations" class="v12-view">
+  <section class="v12-panel"><div class="v12-section-title"><h2>👥 Relations</h2><span class="tag">Monde vivant</span></div><div id="relationsList"></div></section>
+  <section class="v12-panel"><h3>🧠 Souvenirs importants</h3><div id="memoryList"></div></section>
+</div>
+
+<div id="view-career" class="v12-view">
+  <section class="v12-panel"><div class="v12-section-title"><h2>🏆 Carrière</h2><span class="tag" id="careerPathTag"></span></div><div id="careerPanel"></div></section>
+  <section class="v12-panel"><h3>🌍 Monde vivant</h3><div id="worldPanel"></div></section>
+</div>
+
+<div id="view-journal" class="v12-view">
+  <section class="v12-panel"><div class="v12-section-title"><h2>📜 Journal</h2><span class="tag" id="dayTag"></span></div><div id="journalList" class="log"></div></section>
+  <section class="v12-panel"><h3>⚙️ Partie</h3>
+    <button onclick="restDay()">🌙 Récupération</button>
+    <button id="retireBtn" class="good hidden" onclick="retireNow()">🏖️ Retraite</button>
+    <button onclick="saveGame()">💾 Sauvegarder</button><button onclick="exportSave()">📦 Exporter</button><button onclick="importSave()">📥 Importer</button>
+    <button class="danger" onclick="abandonRun()">🚪 Abandonner</button>
+  </section>
+</div>
+
+<nav class="v12-nav">
+ <button class="active" onclick="v12Tab('story',this)"><span>🎬</span>Histoire</button>
+ <button onclick="v12Tab('character',this)"><span>🧬</span>Héros</button>
+ <button onclick="v12Tab('relations',this)"><span>👥</span>Liens</button>
+ <button onclick="v12Tab('career',this)"><span>🏆</span>Carrière</button>
+ <button onclick="v12Tab('journal',this)"><span>📜</span>Journal</button>
+</nav>
 </main>
 </div>
 <section id="runEnd" class="card run-dead hidden" style="position:fixed;inset:10%;z-index:30;overflow:auto;max-height:80vh;box-shadow:0 30px 100px #000c"><div id="runEndContent"></div></section>
@@ -152,8 +201,8 @@ label{font-size:11px;text-transform:uppercase;letter-spacing:.09em;font-weight:8
 
 <script>
 "use strict";
-const KEY="mha-road-v11-save";
-const LEGACY_KEYS=["mha-road-v10-save","mha-road-v9.2-save","mha-road-v9-save","mha-road-v8-save","mha-road-v7-save","mha-road-v6-save"];
+const KEY="mha-road-v12-save";
+const LEGACY_KEYS=["mha-road-v11-save","mha-road-v10-save","mha-road-v9.2-save","mha-road-v9-save","mha-road-v8-save","mha-road-v7-save","mha-road-v6-save"];
 const META_KEY="mha-road-v7-meta";
 const SHOP_ITEMS={
   heart:{name:"Cœur blindé",desc:"+20 PV max au début de chaque nouvelle carrière.",cost:70,kind:"maxHp",value:20},
@@ -240,7 +289,7 @@ function startGame(){
  const situation=val("quirkSituation");
  const base={force:25,vitesse:25,defense:25,endurance:25,intelligence:25,technique:25,controle:20,courage:25};
  S={
-  version:11,name:val("name").trim()||"Héros",age:15,school:val("school")||"Collège — classe de 4e",origin:val("origin"),personality:val("personality"),
+  version:12,name:val("name").trim()||"Héros",age:15,school:val("school")||"Collège — classe de 4e",origin:val("origin"),personality:val("personality"),
   quirkSituation:situation,quirk:null,quirkLevel:0,quirkXP:0,day:1,week:1,phase:"Matin",energy:100,hp:100,maxHp:100,money:120,rep:0,
   stats:base,relations:Object.fromEntries(REL_NAMES.map(n=>[n,0])),relationType:{},injuries:{},flags:{},history:[],seen:{},cooldowns:{},
   arc:"Début du collège",arcProgress:0,
@@ -251,7 +300,7 @@ function startGame(){
   factions:{hero:0,underground:0,law:0}, enemies:{}, equipment:[], mission:null, careerRank:0, publicRep:0, notoriety:0, moneyDebt:0, injuriesHistory:[],
   rng:(Date.now()%2147483647)||12345,
   currentEventId:null,currentEventState:null,combat:null,runEnded:false,metaRevives:0,startingAge:15,lifeYear:1,periodType:"season",periodActions:0,
-  hidden:{inheritScore:0,inheritCandidate:false,secretRoll:0},dayActions:0,weeklyActions:0,weekEventIds:[],recentEvents:[],lastActionSummary:null,awaitingContinue:false,achievements:[],season:0,seasonFinale:false,progressionReady:false,quirklessRoute:null
+  hidden:{inheritScore:0,inheritCandidate:false,secretRoll:0},dayActions:0,weeklyActions:0,weekEventIds:[],recentEvents:[],lastActionSummary:null,awaitingContinue:false,achievements:[],season:0,seasonFinale:false,progressionReady:false,quirklessRoute:null,memories:[],traits:[],world:{ticks:0,npcs:{},news:[]}
  };
  applyCreation();
  // V11.1 : l’âge est déduit automatiquement du parcours scolaire.
@@ -322,6 +371,7 @@ function abandonRun(){
  if(!S||S.runEnded)return;
  if(!confirm("Abandonner cette partie ? Toute la progression de cette carrière sera supprimée. Tes bonus de boutique et succès resteront conservés."))return;
  localStorage.removeItem(KEY);
+ localStorage.removeItem("mha-road-v11-save");
  localStorage.removeItem("mha-road-v8-save");localStorage.removeItem("mha-road-v9-save");localStorage.removeItem("mha-road-v9.2-save");
  localStorage.removeItem("mha-road-v7-save");
  localStorage.removeItem("mha-road-v6-save");
@@ -346,6 +396,7 @@ function advanceAfterChoice(){
  generateEvent();render();saveGame();
 }
 function endDay(){
+ tickWorld();
  S.day+=91;
  S.money+=Math.max(120,Math.round(180+S.careerRank*8));
  S.publicRep=clamp(S.publicRep+Math.round((S.rep-S.publicRep)*.06),-100,100);
@@ -873,6 +924,7 @@ function choose(index){
  const eventId=currentEvent.id;
  const result=c[1]();
  if(result)log(result);
+ recordChoiceMemory(c[0],result||"");
  if(combat){
    setActionSummary(c[0],result||"Le combat commence.",before,"Combat en cours");
    S.awaitingContinue=false;
@@ -886,6 +938,34 @@ function choose(index){
  setActionSummary(c[0],result||"Action terminée.",before);
  S.awaitingContinue=true;
  saveGame();render();
+}
+function remember(title,text){
+ if(!S.memories)S.memories=[];
+ S.memories.unshift({title,text,day:S.day,season:seasonName()});
+ S.memories=S.memories.slice(0,40);
+}
+function tickWorld(){
+ if(!S||S.runEnded)return;
+ S.world=S.world||{ticks:0,npcs:{},news:[]};
+ S.world.ticks++;
+ REL_NAMES.forEach((n,i)=>{
+   if(!S.world.npcs[n])S.world.npcs[n]={level:1,status:"Continue son propre parcours.",rival:null};
+   const rel=S.relations[n]||0;
+   const npc=S.world.npcs[n];
+   if(chance(.22))npc.level=clamp((npc.level||1)+(chance(.5)?1:0),1,5);
+   if(rel>=65)npc.status="Votre lien influence aussi ses décisions.";
+   else if(rel<=-35)npc.status="Une tension durable existe entre vous.";
+   else npc.status=pick(["S'entraîne de son côté.","Travaille sur ses propres objectifs.","Se rapproche d'autres élèves.","Cherche une nouvelle opportunité."]);
+   if(n==="Katsuki"&&rel<20)npc.rival="Toi";
+ });
+ if(S.rep>=35&&!has("memory_reputation")){
+   setFlag("memory_reputation");remember("Ta réputation commence à compter","Certaines personnes te reconnaissent désormais avant même que tu te présentes.");
+ }
+}
+function recordChoiceMemory(title,result){
+ if(!S)return;
+ if(/proté|sauve|secour|aide/i.test(result||""))remember(title,"Tu as choisi d'aider ou de protéger quelqu'un. Ce choix pourra être rappelé plus tard.");
+ if(/refus|abandon|fui|fuir/i.test(result||""))remember(title,"Tu as refusé ou quitté une situation importante. Certaines personnes peuvent s'en souvenir.");
 }
 function checkMilestones(){
  ensureV7();
@@ -971,22 +1051,52 @@ function renderCombat(){
 
 function render(){
  if(!S)return;
- const bar=document.querySelector(".sticky-actions");if(bar)bar.style.display="";
  q("heroName").textContent=S.name;
  const qtxt=S.quirk?`${S.quirk.name} · niv. ${S.quirkLevel}`:(S.flags.noQuirk?"Sans Alter":"Potentiel inconnu");
- q("heroMeta").textContent=`${S.age} ans · ${S.school} · ${qtxt} · ${S.villain&&S.villain.active?"Vilain":"Voie "+(S.career.path||"étudiante")}`;
- q("hp").textContent=Math.round(S.hp)+"/"+S.maxHp;q("energy").textContent=Math.round(S.energy);
- q("rep").textContent=Math.round(S.rep);q("money").textContent=S.money+" ¥";q("day").textContent=S.day;
- q("date").textContent=`Âge ${S.age} ans · Année ${S.lifeYear} · ${S.phase} · ${(S.weeklyActions||0)<5?`${S.weeklyActions||0}/5 actions`:`Finale de saison`}`;
+ q("heroMeta").textContent=`${S.age} ans · ${S.school} · ${qtxt}`;
+ q("hp").textContent=Math.round(S.hp)+"/"+S.maxHp;
+ q("energy").textContent=Math.round(S.energy);
+ q("rep").textContent=Math.round(S.rep);
+ q("money").textContent=S.money+" ¥";
+ q("dayTag").textContent=`Jour ${S.day}`;
  q("arcTag").textContent=S.arc||"Année 1";
- const routeEl=q("quirklessRoutePanel");if(routeEl){const names={combat:"Combattant",strategist:"Stratège",gear:"Support Gear",mobility:"Mobilité",protector:"Protecteur",inventor:"Inventeur",extreme:"Dépassement humain",hybrid:"Hybride"};routeEl.innerHTML=S.flags.noQuirk&&S.quirklessRoute?`<div class="season-v10"><b>🦾 Voie Quirkless : ${names[S.quirklessRoute]||S.quirklessRoute}</b><div class="small muted">Cette spécialisation évolue selon tes actions. Le One For All reste une possibilité secrète indépendante.</div></div>`:"";}
- const hero=q("heroName").closest(".hero");if(hero)hero.style.setProperty("--route",S.villain&&S.villain.active?"#ff7180":"#70a7ff");
- renderTimeline();renderWeeklyPanel();renderEvent();renderActionSummary();renderStats();renderRelations();renderPower();renderCareer();renderJournal();renderCombat();
- setTimeout(()=>{
-  if(combat)q("combat")?.scrollIntoView({behavior:"smooth",block:"start"});
-  else if(S.awaitingContinue)q("actionSummary")?.scrollIntoView({behavior:"smooth",block:"start"});
- },40);
+ q("v12Avatar").textContent=(S.name||"M").charAt(0).toUpperCase();
+ q("date").textContent=`${S.phase} · ${S.lifeYear}e année · ${seasonName()} · ${S.weeklyActions||0}/5`;
+ q("characterRoute").textContent=S.villain&&S.villain.active?"Vilain":(S.career.path||"Étudiant");
+ q("careerPathTag").textContent=S.villain&&S.villain.active?"Route clandestine":(S.career.path||"Étudiant");
+ renderV12Season();
+ renderEvent();renderActionSummary();renderStats();renderRelations();renderPower();renderCareer();renderJournal();renderCombat();renderCharacterOverview();renderMemories();renderWorld();
 }
+function renderV12Season(){
+ const done=Math.min(5,S.weeklyActions||0), pct=done/5*100;
+ q("v12SeasonBar").innerHTML=`<div><strong>Année ${S.lifeYear} · ${seasonName()}</strong><small>${done>=5?"⭐ Finale de saison":"Action "+(done+1)+" sur 5"}</small><div class="v12-progress"><i style="width:${pct}%"></i></div></div><span class="tag">${S.age} ans</span>`;
+}
+function v12Tab(id,btn){
+ document.querySelectorAll(".v12-view").forEach(x=>x.classList.remove("active"));
+ const target=q("view-"+id);if(target)target.classList.add("active");
+ document.querySelectorAll(".v12-nav button").forEach(x=>x.classList.remove("active"));btn.classList.add("active");
+ window.scrollTo(0,0);
+}
+function renderCharacterOverview(){
+ const route=S.flags.noQuirk?(S.quirklessRoute||"Quirkless en développement"):(S.quirk?S.quirk.name:"Potentiel encore inconnu");
+ q("characterOverview").innerHTML=`<div class="v12-grid2">
+ <div class="v12-info"><small>Voie</small><b>${route}</b></div>
+ <div class="v12-info"><small>Réputation publique</small><b>${Math.round(S.publicRep)}</b></div>
+ <div class="v12-info"><small>Énergie</small><b>${Math.round(S.energy)}</b></div>
+ <div class="v12-info"><small>Blessures</small><b>${Object.keys(S.injuries||{}).length||"Aucune"}</b></div>
+ </div>`;
+}
+function renderMemories(){
+ const arr=S.memories||[];
+ q("memoryList").innerHTML=arr.length?arr.slice(0,12).map(m=>`<div class="v12-memory"><b>${m.title}</b><br><small>${m.text} · ${m.season||""}</small></div>`).join(""):`<div class="v12-empty">Tes souvenirs importants apparaîtront ici au fil de l'histoire.</div>`;
+}
+function renderWorld(){
+ const w=S.world||{};
+ const npc=w.npcs||{};
+ const entries=Object.entries(npc).slice(0,8).map(([n,x])=>`<div class="v12-world-card"><b>${n} · Niveau ${x.level||1}</b><small>${x.status||"Continue sa propre progression."} ${x.rival?`Rivalité : ${x.rival}`:""}</small></div>`).join("");
+ q("worldPanel").innerHTML=`<div class="v12-info"><small>Événements mondiaux enregistrés</small><b>${w.ticks||0}</b></div>${entries||'<div class="v12-empty">Le monde commence à évoluer autour de toi.</div>'}`;
+}
+
 function renderWeeklyPanel(){
  const done=S.weeklyActions||0,max=actionsPerPeriod();
  const pct=Math.round(Math.min(done,5)/5*100);
@@ -1064,10 +1174,10 @@ function renderCareer(){
  ${S.mission?`<div class="notice warning"><b>Mission active :</b> ${S.mission.objective} · difficulté ${S.mission.difficulty} · récompense ${S.mission.reward} ¥${S.mission.enemy?` · ${S.mission.enemy}`:""}</div>`:""}
  ${S.villain&&S.villain.active?`<div class="notice warning"><b>Réseau clandestin :</b> ${S.villain.faction||"Sans faction"} · pseudonyme ${S.villain.alias} · notoriété ${S.villain.notoriety} · chaleur ${S.villain.heat} · crimes ${S.villain.crimes} ${S.villain.wanted?"· RECHERCHÉ":""}</div>`:""}
  <div class="notice"><b>Alignement :</b> Héroïque ${S.alignment.hero} · Éthique ${S.alignment.ethics} · Souterrain ${S.alignment.underground} · Criminel ${S.alignment.criminal}</div>
- <div class="small muted">V11 : 4 saisons par année, monde vivant, progression lente, spécialisations émergentes, relations persistantes, secrets et routes de carrière divergentes. La retraite reste possible de 60 à 70 ans.</div>`;
+ <div class="small muted">V12 : interface RPG mobile, monde vivant, mémoire des choix, progression émergente, relations persistantes, secrets et routes de carrière divergentes. La retraite reste possible de 60 à 70 ans.</div>`;
 }
 function renderJournal(){q("journalList").innerHTML=S.history.map(x=>`<div class="entry"><b>J${x.day}</b> — ${x.text}</div>`).join("")}
-function tab(id,btn){["story","stats","relations","power","career","journal"].forEach(x=>q(x).classList.add("hidden"));q(id).classList.remove("hidden");document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));btn.classList.add("active")}
+function tab(id,btn){v12Tab(id,btn)}
 
 function saveGame(){
  if(!S)return;
@@ -1083,7 +1193,11 @@ function restoreCurrentEvent(){
  currentEvent=e;return true;
 }
 function migrateState(){
- S.version=11;
+ S.version=12;
+ S.memories=S.memories||[];
+ S.traits=S.traits||[];
+ S.world=S.world||{ticks:0,npcs:{},news:[]};
+ S.world.ticks=S.world.ticks||0;S.world.npcs=S.world.npcs||{};S.world.news=S.world.news||[];
  S.progressionReady=true;
  ensureV7();
  S.runEnded=false;S.metaRevives=S.metaRevives||0;S.startingAge=S.startingAge||Math.max(12,(S.age||12)-Math.floor(((S.week||1)-1)/52));S.lifeYear=S.lifeYear||Math.floor(((S.week||1)-1)/52)+1;S.periodType=S.periodType||(S.age>=18?"year":"week");S.periodActions=S.periodActions||0;S.weeklyActions=(typeof S.weeklyActions==="number"?S.weeklyActions:(S.dayActions||0));S.weekEventIds=S.weekEventIds||[];S.recentEvents=S.recentEvents||[];S.lastActionSummary=S.lastActionSummary||null;S.awaitingContinue=!!S.awaitingContinue;S.achievements=S.achievements||[];
@@ -1109,7 +1223,7 @@ function exportSave(){
  if(!S){toast("Aucune partie");return}
  const copy=JSON.parse(JSON.stringify(S));copy.meta=getMeta();copy.exportedAt=new Date().toISOString();
  const blob=new Blob([JSON.stringify(copy,null,2)],{type:"application/json"});
- const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mha-road-v11-save.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mha-road-v12-save.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
 }
 function importSave(){
  const input=document.createElement("input");input.type="file";input.accept=".json,application/json";
@@ -1128,7 +1242,7 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
   const V11_ROUTES=["Combattant","Stratège","Support Gear","Mobilité","Protecteur","Ingénieur","Dépassement humain","Hybride"];
   function v11Init(){
     if(!S)return;
-    S.version=11;
+    S.version=12;
     S.season=Number.isFinite(S.season)?S.season:0;
     S.seasonAction=Number.isFinite(S.seasonAction)?S.seasonAction:(S.periodActions||0);
     S.seasonHistory=S.seasonHistory||[];
@@ -1330,12 +1444,12 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
     if(S.school==="U.A. — Filière générale")S.career.path="hero_candidate";
     if(S.school==="Shiketsu")S.career.path="hero";
     if(S.school==="Lycée normal")S.career.path="civil";
-    S.version=11;
+    S.version=12;
   };
 
   // Reset to V11 save key and preserve old saves as importable legacy data.
   const oldSaveGame=saveGame;
-  saveGame=function(){if(S){S.version=11;S.v11={...(S.v11||{}),version:11};}return oldSaveGame();};
+  saveGame=function(){if(S){S.version=12;S.v11={...(S.v11||{}),version:11};}return oldSaveGame();};
   const oldNewGame=newGame;
   newGame=function(){if(confirm("Abandonner cette carrière ? Les succès et crédits de méta-progression resteront conservés.")){localStorage.removeItem("mha-road-v11-save");localStorage.removeItem(KEY);oldNewGame();}};
   // Use V11 key everywhere from now on.
@@ -1343,6 +1457,255 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
   // First render after all overrides are installed.
   if(S){v11Init();render();}
 })();
+
+/* ========================= MHA ROAD V12.5 COMPLETE LAYER ========================= */
+(function(){
+  const V125=125;
+  const V125_TRAITS=[
+    ["Protecteur","Tu protèges les autres même lorsque cela te coûte quelque chose.","protect"],
+    ["Stratège","Tu préfères comprendre une situation avant de t'y engager.","strategy"],
+    ["Téméraire","Tu acceptes plus facilement les risques lorsque l'enjeu est important.","bravery"],
+    ["Prudent","Tu limites les risques et cherches les solutions les plus sûres.","caution"],
+    ["Leader","Les autres commencent naturellement à se tourner vers toi.","leadership"],
+    ["Ingénieux","Tu transformes les contraintes en solutions concrètes.","inventive"],
+    ["Persévérant","Tu continues malgré les échecs, les blessures et la fatigue.","perseverance"],
+    ["Indépendant","Tu construis progressivement ta propre manière de faire.","independent"]
+  ];
+  const V125_ARCS=[
+    {id:"memory_rival",need:()=>S.relations&&S.relations.Katsuki>=45&&!has("v125_rival_arc"),title:"Une rivalité qui grandit",type:"Arc",weight:4,text:()=>`Ta relation avec Katsuki est devenue trop importante pour rester une simple série de confrontations. Il veut savoir jusqu'où tu peux aller.`,choices:[
+      ["Accepter un entraînement privé",()=>{setFlag("v125_rival_arc");S.hidden.rivalMeetings=(S.hidden.rivalMeetings||0)+1;modRel("Katsuki",5);modStat("technique",1);return"Vous vous entraînez sans public. La rivalité devient plus sérieuse."}],
+      ["Refuser et suivre ton propre chemin",()=>{setFlag("v125_rival_arc");S.hidden.independence=(S.hidden.independence||0)+2;modStat("intelligence",1);return"Tu refuses de laisser cette rivalité définir ton parcours."}]
+    ]},
+    {id:"memory_rescue",need:()=>((S.hidden.rescueCount||0)>=2)&&!has("v125_rescue_arc"),title:"Quelqu'un se souvient de toi",type:"Arc",weight:3.5,text:()=>`Une personne que tu as aidée par le passé te reconnaît dans une situation où tu ne t'y attendais pas.`,choices:[
+      ["Prendre le temps d'écouter",()=>{setFlag("v125_rescue_arc");S.rep+=1;S.publicRep+=2;modRel("Ochaco",2);return"Tu réalises que certaines actions continuent d'avoir un effet longtemps après leur fin."}],
+      ["Rester concentré sur ta mission",()=>{setFlag("v125_rescue_arc");modStat("technique",1);return"Tu restes concentré, mais la personne n'oubliera pas que tu étais là."}]
+    ]},
+    {id:"memory_failure",need:()=>((S.hidden.failureCount||0)>=2)&&!has("v125_failure_arc"),title:"L'échec revient",type:"Arc",weight:3,text:()=>`Une ancienne erreur réapparaît dans ton parcours. Cette fois, tu as l'occasion de montrer ce que tu en as fait.`,choices:[
+      ["Affronter le problème",()=>{setFlag("v125_failure_arc");S.hidden.overcomeFailures=(S.hidden.overcomeFailures||0)+2;modStat("courage",1);return"Tu affrontes directement ce qui te rappelait ton échec."}],
+      ["Analyser ce qui n'avait pas fonctionné",()=>{setFlag("v125_failure_arc");S.hidden.overcomeFailures=(S.hidden.overcomeFailures||0)+1;modStat("intelligence",1);return"Tu transformes ton ancien échec en méthode."}]
+    ]},
+    {id:"career_choice",need:()=>S.age>=17&&!has("v125_career_arc")&&(S.rep>=25||S.publicRep>=20),title:"Deux chemins commencent à se séparer",type:"Carrière",weight:2.5,text:()=>`Plusieurs personnes commencent à voir en toi un potentiel professionnel. Pour la première fois, choisir une direction peut fermer certaines portes et en ouvrir d'autres.`,choices:[
+      ["Construire une carrière héroïque",()=>{setFlag("v125_career_arc");S.career.path="hero";S.factions.hero+=5;S.publicRep+=3;return"Tu assumes une ambition héroïque plus claire."}],
+      ["Rester indépendant",()=>{setFlag("v125_career_arc");S.career.path="independent";S.hidden.independence=(S.hidden.independence||0)+3;return"Tu refuses de laisser une institution décider de ce que tu dois devenir."}],
+      ["Développer le soutien et la technologie",()=>{setFlag("v125_career_arc");S.career.path="support";S.hidden.engineering=(S.hidden.engineering||0)+3;return"Tu construis un parcours où l'ingénierie et le soutien deviennent centraux."}]
+    ]}
+  ];
+  const V125_SECRET=[
+    {id:"v125_legacy_whisper",type:"Secret",title:"Une attention inhabituelle",weight:1.1,need:()=>v125OFAEligible()&&!has("ofaWhisper"),text:()=>`Un professionnel te regarde quelques secondes de plus que nécessaire. Il ne dit rien sur le moment, mais cette impression reste avec toi.`,choices:[
+      ["Chercher à comprendre",()=>{setFlag("ofaWhisper");S.hidden.secretStage=1;S.hidden.allMightAttention=(S.hidden.allMightAttention||0)+1;modStat("intelligence",1);remember("Une attention étrange","Quelqu'un semble avoir remarqué quelque chose chez toi.");return"Tu ne trouves aucune réponse immédiate. Mais cette rencontre te reste en tête."}],
+      ["Passer à autre chose",()=>{setFlag("ofaWhisper");S.hidden.secretStage=1;return"Tu décides de ne pas y accorder d'importance."}]
+    ]},
+    {id:"v125_legacy_offer",type:"Secret",title:"Ce que tu pourrais porter",weight:1.2,need:()=>v125OFAEligible()&&has("ofaWhisper")&&(S.hidden.secretStage||0)>=1&&!has("ofaOffer"),text:()=>`Une conversation privée t'est proposée. La personne en face de toi ne parle pas de puissance. Elle parle de responsabilité, de transmission et de ce qu'un corps humain peut supporter.`,choices:[
+      ["Écouter jusqu'au bout",()=>{setFlag("ofaOffer");S.hidden.secretStage=2;return"Tu acceptes d'écouter. Quelque chose de beaucoup plus grand que toi semble être en jeu."}],
+      ["Demander pourquoi toi",()=>{setFlag("ofaOffer");S.hidden.secretStage=2;S.hidden.inheritScore+=3;return"Tu demandes pourquoi tu as été choisi pour cette conversation. La réponse n'est pas immédiate."}]
+    ]},
+    {id:"v125_legacy_choice",type:"Secret",title:"L'héritage",weight:1,need:()=>has("ofaOffer")&&!has("inheritedPower")&&(S.hidden.secretStage||0)>=2,text:()=>`On te propose enfin un choix que personne ne peut faire à ta place. Accepter signifie porter un pouvoir qui dépasse ton niveau actuel. Refuser signifie continuer à construire ta propre légende.`,choices:[
+      ["Accepter l'héritage",()=>{setFlag("inheritedPower");S.hidden.secretStage=3;S.hidden.legacyAccepted=true;S.hidden.inheritScore+=10;S.quirk={id:"legacy",name:"One For All",desc:"Un pouvoir transmis qui amplifie le corps et porte une mémoire collective.",weak:"corps initialement incapable de supporter toute la puissance"};S.quirkLevel=1;S.quirkXP=5;S.flags.quirkRevealed=true;remember("L'héritage","Tu as accepté un pouvoir transmis. Ton corps doit maintenant apprendre à le supporter.");return"Tu acceptes. Ce pouvoir n'est pas une récompense : c'est une responsabilité qui commence maintenant."}],
+      ["Refuser",()=>{setFlag("ofaRefused");S.hidden.secretStage=4;S.hidden.independence=(S.hidden.independence||0)+4;remember("Le choix de l'héritage","Tu as refusé un pouvoir qui t'était proposé et choisi de continuer avec tes propres moyens.");return"Tu refuses. Quelle que soit la suite, ce choix t'appartient entièrement."}]
+    ]}
+  ];
+
+  function v125Init(){
+    if(!S)return;
+    S.version=V125;
+    S.v12=S.v12||{};S.v12.version=12.5;
+    S.behavior=S.behavior||{protect:0,strategy:0,bravery:0,caution:0,leadership:0,inventive:0,perseverance:0,independent:0,social:0,discipline:0,sacrifice:0,aggression:0};
+    S.traits=Array.isArray(S.traits)?S.traits:[];
+    S.storyThreads=S.storyThreads||{};
+    S.storyHistory=Array.isArray(S.storyHistory)?S.storyHistory:[];
+    S.hidden=S.hidden||{};
+    S.hidden.rescueCount=S.hidden.rescueCount||0;S.hidden.failureCount=S.hidden.failureCount||0;S.hidden.selflessCount=S.hidden.selflessCount||0;
+    S.hidden.refusedKill=S.hidden.refusedKill||false;S.hidden.secretStage=S.hidden.secretStage||0;S.hidden.allMightAttention=S.hidden.allMightAttention||0;
+    S.hidden.independence=S.hidden.independence||0;S.hidden.engineering=S.hidden.engineering||0;S.hidden.overcomeFailures=S.hidden.overcomeFailures||0;
+    S.quirkMastery=S.quirkMastery||0;S.quirkTechniques=Array.isArray(S.quirkTechniques)?S.quirkTechniques:[];S.quirkDrawback=S.quirkDrawback||0;
+    S.career=S.career||{};S.career.legacy=S.career.legacy||[];S.career.keyMoments=S.career.keyMoments||[];
+    S.equipment=Array.isArray(S.equipment)?S.equipment:[];
+    S._v125Action=false;
+  }
+  v125Init();
+
+  function v125OFAEligible(){
+    if(!S||!S.flags||!S.flags.noQuirk||has("ofaRefused")||has("inheritedPower"))return false;
+    const courage=S.stats.courage||0, rep=S.rep||0, protect=S.hidden.rescueCount||0, altruism=S.hidden.selflessCount||0;
+    const score=(S.hidden.inheritScore||0)+(courage>=42?5:0)+(rep>=18?3:0)+(protect>=2?5:0)+(altruism>=2?5:0)+(S.relations&&S.relations["All Might"]>=15?5:0);
+    return score>=22;
+  }
+
+  function v125TraitUpdate(text){
+    if(!S)return;
+    const t=(text||"").toLowerCase();
+    const b=S.behavior;
+    if(/proté|sauve|secour|aide/.test(t)){b.protect++;S.hidden.rescueCount++;if(/pourtant|sacrif|au prix/.test(t))S.hidden.selflessCount++;}
+    if(/analys|observer|étudier|plan|strat/.test(t))b.strategy++;
+    if(/défi|affronter|attaque|duel|risque/.test(t))b.bravery++;
+    if(/prud|éviter|recul|sécur/.test(t))b.caution++;
+    if(/leader|dirig|groupe|alli/.test(t))b.leadership++;
+    if(/invent|constru|répar|prototype|équipement/.test(t))b.inventive++;
+    if(/entraîn|endur|continuer|persév|dépass/.test(t))b.perseverance++;
+    if(/indépend|seul|propre chemin|refus/.test(t))b.independent++;
+    if(/amis|discussion|déjeuner|écouter/.test(t))b.social++;
+    if(/discipline|méthod|régulier/.test(t))b.discipline++;
+    if(/sacrif|au prix|bless/.test(t))b.sacrifice++;
+    if(/provoc|colère|agress/.test(t))b.aggression++;
+    const checks=[
+      ["Protecteur","protect",7],["Stratège","strategy",7],["Téméraire","bravery",8],["Prudent","caution",8],
+      ["Leader","leadership",7],["Ingénieux","inventive",7],["Persévérant","perseverance",8],["Indépendant","independent",8]
+    ];
+    checks.forEach(([name,key,need])=>{if(b[key]>=need&&!S.traits.includes(name)){S.traits.push(name);S.career.keyMoments.push({title:`Trait révélé : ${name}`,day:S.day});remember(`Trait révélé : ${name}`,V125_TRAITS.find(x=>x[0]===name)?.[1]||"Ton comportement répété dessine un trait durable.");}});
+    if(b.aggression>=8&&b.protect>=8&&!S.traits.includes("Protecteur combatif"))S.traits.push("Protecteur combatif");
+  }
+
+  function v125RecordStory(title,text,kind="choice"){
+    if(!S)return;
+    S.storyHistory.unshift({title,text,day:S.day,season:seasonName(),kind});S.storyHistory=S.storyHistory.slice(0,60);
+    if(S.career&&S.career.keyMoments){S.career.keyMoments.unshift({title,day:S.day});S.career.keyMoments=S.career.keyMoments.slice(0,20);}
+  }
+
+  function v125QuirkProgress(text){
+    if(!S||!S.quirk)return;
+    const t=(text||"").toLowerCase();let gain=0;
+    if(/alter|pouvoir|contrôle|technique|résonance|impulsion/.test(t))gain+=2;
+    if(/combat|attaque|défense|mission/.test(t))gain+=1;
+    if(S.stats.controle>=45)gain+=1;
+    if(gain){S.quirkXP=(S.quirkXP||0)+gain;S.quirkMastery=clamp(Math.floor(S.quirkXP/18),0,10);}
+    if(S.quirkXP>=35&&!S.quirkTechniques.includes("Utilisation maîtrisée")){S.quirkTechniques.push("Utilisation maîtrisée");modStat("controle",1);remember("Première maîtrise","Ton Alter devient plus prévisible lorsque tu le contrôles.");}
+    if(S.quirkXP>=70&&!S.quirkTechniques.includes("Technique personnelle")){S.quirkTechniques.push("Technique personnelle");modStat("technique",1);remember("Technique personnelle","Ton utilisation du pouvoir commence à devenir reconnaissable.");}
+    if(S.quirkXP>=120&&!S.quirkTechniques.includes("Évolution avancée")){S.quirkTechniques.push("Évolution avancée");S.quirkLevel=Math.max(S.quirkLevel||1,3);remember("Évolution avancée","Ton Alter franchit un nouveau seuil, avec un coût plus important sur ton corps.");}
+    S.quirkDrawback=clamp(Math.floor((S.quirkXP||0)/45),0,5);
+  }
+
+  // Existing choices now feed the deeper V12.5 behavioral systems.
+  const oldChoose=choose;
+  choose=function(index){
+    if(!S||!currentEvent)return oldChoose(index);
+    const title=currentEvent.title||"Action";
+    const before={...S.stats};
+    const oldRep=S.rep, oldPublic=S.publicRep;
+    const c=currentEvent.choices&&currentEvent.choices[index];
+    const label=c?c[0]:"Action";
+    const result=oldChoose(index);
+    const text=`${label} ${result||""}`;
+    v125TraitUpdate(text);v125QuirkProgress(text);
+    if(S.rep>oldRep+2||S.publicRep>oldPublic+2)v125RecordStory("Réputation en hausse",`Ton action lors de « ${title} » commence à modifier ton image.`,"reputation");
+    if(/échec|échou|raté|perd|bless/i.test(text))S.hidden.failureCount++;
+    if(/refus|fuir|abandon/i.test(text)&&/tuer|mort|meurtr/i.test(text))S.hidden.refusedKill=true;
+    if(/proté|sauve|secour|aide/i.test(text)){S.hidden.inheritScore=(S.hidden.inheritScore||0)+1;}
+    if(S.flags.noQuirk&&/proté|sauve|secour|aide/i.test(text))S.hidden.inheritScore=(S.hidden.inheritScore||0)+1;
+    v125MaybeArcMemory();
+    v125MaybeLegacyFlag();
+    saveGame();
+    return result;
+  };
+
+  function v125MaybeArcMemory(){
+    if(!S||!S.storyThreads)return;
+    if((S.hidden.failureCount||0)>=2)S.storyThreads.failure={active:true,progress:S.hidden.overcomeFailures||0};
+    if((S.hidden.rescueCount||0)>=2)S.storyThreads.rescue={active:true,progress:S.hidden.rescueCount};
+    if(S.relations&&S.relations.Katsuki>=45)S.storyThreads.rival={active:true,progress:S.relations.Katsuki};
+  }
+  function v125MaybeLegacyFlag(){
+    if(!S||!S.flags.noQuirk)return;
+    if(v125OFAEligible()&&!has("legacyPathReady")){setFlag("legacyPathReady");S.hidden.secretRoll=Math.floor(rnd(100));}
+  }
+
+  // Add the multi-season consequence events to the existing procedural pool.
+  V125_ARCS.concat(V125_SECRET).forEach(e=>{if(!EVENTS.some(x=>x.id===e.id))EVENTS.push(e);});
+
+  const oldGenerate=generateEvent;
+  generateEvent=function(isFinale=false){
+    if(!S)return oldGenerate(isFinale);
+    const eligible=[...V125_ARCS,...V125_SECRET].filter(e=>{try{return e.need()}catch(_){return false}});
+    // Secret routes stay genuinely rare. They are never shown as a UI objective before discovery.
+    const secret=eligible.filter(e=>e.type==="Secret");
+    if(secret.length&&!isFinale){
+      const roll=rnd(100);
+      if(roll<4){currentEvent=pick(secret);S.currentEventId=currentEvent.id;S.currentEventState={day:S.day,phase:S.phase,renderedAt:Date.now()};return;}
+    }
+    const arcs=eligible.filter(e=>e.type!=="Secret");
+    if(arcs.length&&!isFinale&&chance(Math.min(.32,.08+arcs.length*.035))){currentEvent=pick(arcs);S.currentEventId=currentEvent.id;S.currentEventState={day:S.day,phase:S.phase,renderedAt:Date.now()};return;}
+    return oldGenerate(isFinale);
+  };
+
+  // Replace the remaining automatic page jumps with a local story viewport.
+  const oldAdvance=advanceAfterChoice;
+  advanceAfterChoice=function(){
+    const r=oldAdvance();
+    requestAnimationFrame(()=>{const game=q("game"),story=q("view-story");if(game&&story)story.scrollIntoView({behavior:"auto",block:"start"});});
+    return r;
+  };
+
+  // Equipment now has lightweight functional bonuses rather than being purely cosmetic.
+  const oldPowerScore=powerScore;
+  powerScore=function(){
+    let p=oldPowerScore();
+    const gear=S&&S.equipment||[];
+    if(gear.some(x=>/Prototype|support|soutien/i.test(x)))p+=3;
+    if(gear.some(x=>/Mobilité|propulsion|agilité/i.test(x)))p+=2;
+    if(S&&S.quirklessRoute&&S.quirklessRoute.primary==="Support Gear")p+=4;
+    if(S&&S.quirklessRoute&&S.quirklessRoute.primary==="Ingénieur")p+=2;
+    if(S&&S.traits&&S.traits.includes("Stratège"))p+=1;
+    return p;
+  };
+
+  // Deeper endings: the same run can finish as a legacy, independent or self-made legend.
+  const oldEnding=getEnding;
+  getEnding=function(outcome){
+    if(outcome==="retirement"&&S){
+      if(S.flags.inheritedPower&&S.publicRep>=55)return {title:"🟢 Héritage transmis",desc:"Tu termines ta carrière en ayant porté un pouvoir transmis et en ayant transformé ce legs en une histoire qui t'appartient."};
+      if(S.flags.noQuirk&&S.quirklessRoute&&S.quirklessRoute.primary==="Stratège"&&S.career.missions>=8)return {title:"🧠 Stratège légendaire",desc:"Sans Alter, tu as construit une carrière fondée sur l'analyse, la préparation et une compréhension exceptionnelle du terrain."};
+      if(S.flags.noQuirk&&S.quirklessRoute&&S.quirklessRoute.primary==="Support Gear")return {title:"🛠️ Pionnier du support",desc:"Tu as démontré qu'une carrière héroïque pouvait être redéfinie par la technologie et l'ingéniosité."};
+      if(S.traits&&S.traits.includes("Protecteur")&&(S.hidden.rescueCount||0)>=8)return {title:"🛡️ Gardien des autres",desc:"Ton nom reste associé à une chose : tu étais là lorsque les autres avaient besoin de toi."};
+    }
+    if(outcome!=="death"&&S&&S.career&&S.career.path==="independent"&&(S.rep>=55||S.publicRep>=45))return {title:"🧭 Légende indépendante",desc:"Tu as refusé le parcours classique et construit une carrière entièrement à ton image."};
+    return oldEnding(outcome);
+  };
+
+  // Richer character panel appended to the existing V12 character/power views.
+  const oldRenderPower=renderPower;
+  renderPower=function(){
+    oldRenderPower();if(!S)return;
+    const el=q("powerPanel");if(!el)return;
+    const traits=S.traits&&S.traits.length?S.traits.map(t=>`<span class="v125-pill">${t}</span>`).join(""):'<span class="muted small">Tes traits apparaîtront avec ton comportement.</span>';
+    const tech=S.quirkTechniques&&S.quirkTechniques.length?S.quirkTechniques.join(" · "):"Aucune technique personnelle encore.";
+    const build=S.flags.noQuirk?(S.quirklessRoute&&S.quirklessRoute.primary||"Indéterminée"):"Alter";
+    el.innerHTML+=`<div class="v125-panel"><div class="v125-title"><b>🧠 Identité émergente</b><span class="tag">${build}</span></div><div class="v125-pills">${traits}</div><div class="small muted" style="margin-top:9px">Techniques : ${tech}</div>${S.quirk?`<div class="small muted">Maîtrise de l’Alter : ${S.quirkMastery||0}/10 · coût physique ${S.quirkDrawback||0}/5</div>`:""}</div>`;
+  };
+
+  const oldRenderCareer=renderCareer;
+  renderCareer=function(){
+    oldRenderCareer();if(!S)return;const el=q("careerPanel");if(!el)return;
+    const moments=(S.career.keyMoments||[]).slice(0,5).map(x=>`<div class="v125-moment"><b>${x.title}</b><small>J${x.day}</small></div>`).join("")||'<span class="muted small">Les moments importants apparaîtront ici.</span>';
+    const memories=(S.memories||[]).slice(0,4).map(x=>`<div class="v125-memory"><b>${x.title}</b><small>J${x.day} · ${x.season||""}</small></div>`).join("")||'<span class="muted small">Aucun souvenir marquant enregistré.</span>';
+    el.innerHTML+=`<div class="v125-panel"><div class="v125-title"><b>🧭 Moments charnières</b></div>${moments}</div><div class="v125-panel"><div class="v125-title"><b>🧠 Mémoire du parcours</b></div>${memories}</div>`;
+  };
+
+  // Make the run summary remember the player's identity instead of only its numeric results.
+  const oldFinish=finishRun;
+  finishRun=function(outcome){
+    if(S){S.career=S.career||{};S.career.legacy=S.career.legacy||[];S.career.legacy.push({traits:[...(S.traits||[])],route:S.quirklessRoute&&S.quirklessRoute.primary||S.career.path,memories:(S.memories||[]).slice(0,6),day:S.day});S.career.legacy=S.career.legacy.slice(-5);}
+    return oldFinish(outcome);
+  };
+
+  // Migration and new-game initialization for V12.5.
+  const oldStart=startGame;
+  startGame=function(){const r=oldStart();v125Init();saveGame();return r;};
+  const oldLoad=loadGame;
+  loadGame=function(){const r=oldLoad();if(S){v125Init();saveGame();render();}return r;};
+
+  // Header/version labels.
+  document.querySelectorAll('.tag').forEach(el=>{if(el.textContent.trim()==='V11')el.textContent='V12.5';});
+  document.title='MHA Road — V12.5';
+
+  // Remove all legacy top-of-page jumps left by V11/V12 wrappers.
+  const css=document.createElement('style');css.textContent=`
+    .v125-panel{margin-top:10px;padding:13px;border:1px solid rgba(126,145,255,.16);background:linear-gradient(145deg,rgba(18,27,45,.82),rgba(9,14,24,.9));border-radius:16px}
+    .v125-title{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px}.v125-pills{display:flex;flex-wrap:wrap;gap:6px}.v125-pill{padding:6px 9px;border-radius:999px;border:1px solid #344b77;background:#101d32;font-size:11px}.v125-moment,.v125-memory{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)}.v125-moment:last-child,.v125-memory:last-child{border-bottom:0}.v125-moment small,.v125-memory small{color:#7f8ba2;white-space:nowrap}
+  `;document.head.appendChild(css);
+
+  // If a V12 save was already loaded before this layer, migrate it immediately.
+  if(S){v125Init();saveGame();try{render();}catch(_){} }
+})();
+
 </script>
 </body>
 </html>
