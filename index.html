@@ -124,7 +124,7 @@ body{overscroll-behavior-y:none}
 <div class="creation-step"><span>02</span><div><b>Tempérament</b><small>Ce qui guide tes premières décisions</small></div></div>
 <div class="creation-grid"><div class="field-card field-wide"><label>Personnalité</label><select id="personality"><option>Ambitieux</option><option>Protecteur</option><option>Prudent</option><option>Provocateur</option><option>Curieux</option><option>Altruiste</option></select></div></div>
 <div class="creation-step"><span>03</span><div><b>Alter</b><small>Tu ne choisis pas ton pouvoir</small></div></div>
-<div class="creation-grid"><div class="field-card field-wide"><label>Situation actuelle</label><select id="quirkSituation"><option value="unknown">Je ne connais pas encore mon véritable potentiel.</option><option value="weak">Mon Alter semble faible.</option><option value="none">Je suis sans Alter.</option></select></div></div>
+<div class="creation-grid"><div class="field-card field-wide"><label>🧬 Ton potentiel d’Alter</label><div class="notice">Tu ne choisis pas ton Alter. Il sera déterminé secrètement et découvert progressivement pendant ta vie. Tu peux avoir un Alter commun, rare, légendaire… ou être sans Alter.</div><select id="quirkSituation" style="display:none"><option value="unknown" selected>Inconnu</option></select></div></div>
 <div class="origin-note">✦ <b>Ton âge de départ est déterminé automatiquement</b> selon ton parcours scolaire. Tu n’as plus besoin de le choisir.</div>
 <div class="creation-note">Ton parcours, tes relations, tes blessures, tes choix et tes réussites peuvent ouvrir des routes différentes. Même un personnage sans Alter peut devenir exceptionnel.</div>
 <button class="primary creation-start" onclick="startGame()">Commencer mon histoire <span>→</span></button>
@@ -201,7 +201,7 @@ body{overscroll-behavior-y:none}
 
 <script>
 "use strict";
-const KEY="mha-road-v12-save";
+const KEY="mha-road-v13-save";
 const LEGACY_KEYS=["mha-road-v11-save","mha-road-v10-save","mha-road-v9.2-save","mha-road-v9-save","mha-road-v8-save","mha-road-v7-save","mha-road-v6-save"];
 const META_KEY="mha-road-v7-meta";
 const SHOP_ITEMS={
@@ -1223,7 +1223,7 @@ function exportSave(){
  if(!S){toast("Aucune partie");return}
  const copy=JSON.parse(JSON.stringify(S));copy.meta=getMeta();copy.exportedAt=new Date().toISOString();
  const blob=new Blob([JSON.stringify(copy,null,2)],{type:"application/json"});
- const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mha-road-v12-save.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mha-road-v13-save.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
 }
 function importSave(){
  const input=document.createElement("input");input.type="file";input.accept=".json,application/json";
@@ -1694,7 +1694,7 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 
   // Header/version labels.
   document.querySelectorAll('.tag').forEach(el=>{if(el.textContent.trim()==='V11')el.textContent='V12.5';});
-  document.title='MHA Road — V12.5';
+  document.title='MHA Road — V13';
 
   // Remove all legacy top-of-page jumps left by V11/V12 wrappers.
   const css=document.createElement('style');css.textContent=`
@@ -1704,6 +1704,215 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 
   // If a V12 save was already loaded before this layer, migrate it immediately.
   if(S){v125Init();saveGame();try{render();}catch(_){} }
+})();
+
+
+
+/* ========================= MHA ROAD V13 — ALTER & LIVING WORLD ========================= */
+(function(){
+  const V13=13;
+  const rarityWeights=[['Commun',45],['Peu commun',25],['Rare',15],['Épique',8],['Légendaire',5],['Mythique',2]];
+  const families=[
+    ['Force','Puissance physique','frappe, poussée, impact',['Briser la limite','Travailler la précision','Économiser l’énergie']],
+    ['Vitesse','Accélération et mouvement','course, réflexes, déplacement',['Accélérer davantage','Améliorer les réflexes','Changer de trajectoire']],
+    ['Élément','Manipulation d’un élément','feu, glace, vent, foudre, eau',['Augmenter la puissance','Affiner le contrôle','Développer une nouvelle application']],
+    ['Énergie','Production ou émission d’énergie','rayonnement, impulsion, décharge',['Concentrer','Étendre la portée','Réduire le coût']],
+    ['Transformation','Transformation du corps','forme, densité, structure',['Renforcer la transformation','La rendre partielle','Créer une forme spécialisée']],
+    ['Mutation','Corps naturellement modifié','sens, membres, organes, carapace',['Exploiter le corps','Développer un sens','Transformer une faiblesse en force']],
+    ['Télékinésie','Manipulation à distance','objets, forces, trajectoires',['Augmenter la portée','Multiplier les cibles','Gagner en précision']],
+    ['Gravité','Modification de poids et gravité','lévitation, attraction, répulsion',['Augmenter l’intensité','Créer une zone','Maîtriser les effets sur soi']],
+    ['Ombre','Pouvoir lié aux ombres','formes, déplacement, camouflage',['Étendre les ombres','Créer une technique offensive','Utiliser les ombres pour se déplacer']],
+    ['Lumière','Pouvoir lié à la lumière','flash, rayon, illusion, camouflage',['Intensifier','Dévier la lumière','Créer une application défensive']],
+    ['Son','Manipulation des vibrations','ondes, bruit, résonance',['Augmenter la fréquence','Contrôler la portée','Créer une résonance ciblée']],
+    ['Esprit','Influence mentale ou cognitive','concentration, perception, suggestion',['Améliorer la précision','Étendre l’influence','Résister aux contrecoups']],
+    ['Perception','Altération des sens','vision, anticipation, analyse',['Voir plus loin','Anticiper davantage','Filtrer les informations']],
+    ['Matière','Modification ou création de matière','métal, roche, matière synthétique',['Créer davantage','Modifier la structure','Créer une forme technique']],
+    ['Espace','Manipulation locale de l’espace','portails, distance, position',['Augmenter la portée','Réduire le délai','Créer une sortie de secours']],
+    ['Temps','Effet limité sur le rythme temporel','ralentissement, accélération, perception',['Réduire le coût','Améliorer la durée','Maîtriser la perception']],
+    ['Biologie','Influence sur le vivant','soin, adaptation, croissance',['Spécialiser l’effet','Améliorer la précision','Réduire les risques']],
+    ['Météo','Influence atmosphérique','vent, pression, humidité, température',['Étendre la zone','Concentrer l’effet','Apprendre une nouvelle combinaison']],
+    ['Copie','Reproduction temporaire de propriétés','imitation, adaptation, emprunt',['Augmenter la durée','Copier plus précisément','Gérer plusieurs propriétés']],
+    ['Support','Alter naturellement orienté équipement','construction, stockage, interfaces, gadgets',['Optimiser l’équipement','Créer une invention','Combiner Alter et technologie']]
+  ];
+  const nameParts=[
+    ['Apex','Vector','Flux','Pulse','Nova','Shift','Core','Burst','Drive','Echo'],
+    ['Forge','Prism','Volt','Frost','Blaze','Orbit','Frame','Trace','Anchor','Nexus'],
+    ['Rift','Surge','Crest','Halo','Quake','Glide','Lock','Wave','Edge','Spark']
+  ];
+  const quirkCatalog=[];
+  families.forEach((f,fi)=>{
+    for(let j=0;j<10;j++){
+      const id='v13-'+fi+'-'+j;
+      const rarityIndex=(fi*7+j*3)%100;
+      let acc=0,rarity='Commun';
+      for(const [r,w] of rarityWeights){acc+=w;if(rarityIndex<acc){rarity=r;break}}
+      quirkCatalog.push({id,name:`${f[0]} ${nameParts[fi%3][j]}`,family:f[0],rarity,desc:`${f[1]}. Ce pouvoir peut se développer autour de ${f[2]}.`,weak:`Contrecoup lié à ${f[2]}.`,choices:f[3]});
+    }
+  });
+  // Ajustement de rareté pour garantir une vraie distribution sur les 200 profils.
+  quirkCatalog.forEach((q,i)=>{
+    const n=i%100;
+    q.rarity=n<45?'Commun':n<70?'Peu commun':n<85?'Rare':n<93?'Épique':n<98?'Légendaire':'Mythique';
+  });
+
+  function init(){
+    if(!S)return;
+    S.version=13;
+    S.v13=S.v13||{};
+    S.v13.catalogVersion=1;
+    S.v13.discovery=S.v13.discovery||{status:'unknown',checks:0,manifestation:0,rarity:null};
+    S.v13.alterChoices=S.v13.alterChoices||[];
+    S.v13.alterBranches=S.v13.alterBranches||[];
+    S.v13.legendaryMoments=S.v13.legendaryMoments||[];
+    S.v13.moneyHistory=S.v13.moneyHistory||[];
+    S.v13.npcGoals=S.v13.npcGoals||{};
+    S.v13.afo=S.v13.afo||{eligible:false,stage:0,refused:false,score:0};
+    S.v13.life=S.v13.life||{home:'foyer',study:0,work:0,social:0,health:100};
+    S.v13.worldTick=S.v13.worldTick||0;
+    if(!S.quirkSituation)S.quirkSituation='unknown';
+    if(S.quirkSituation!=='unknown')S.quirkSituation='unknown';
+    if(S.flags){delete S.flags.noQuirk;delete S.flags.weakQuirk;S.flags.quirkMystery=true;}
+  }
+  function pickQuirk(){
+    const idx=Math.floor(rnd(quirkCatalog.length));
+    return quirkCatalog[idx];
+  }
+  function reveal(){
+    init();
+    if(S.v13.discovery.status==='none')return null;
+    if(S.quirk)return S.quirk;
+    // A small chance of being quirkless is independent from rarity.
+    if(chance(0.08)){
+      S.v13.discovery.status='none';S.v13.discovery.rarity=null;S.quirk=null;S.flags.noQuirk=true;S.flags.quirkRevealed=true;
+      S.quirkLevel=0;S.quirkXP=0;remember('Diagnostic','Aucun Alter n’a été détecté. Une autre voie s’ouvre à toi.');
+      return null;
+    }
+    const qk=pickQuirk();
+    S.quirk={id:qk.id,name:qk.name,desc:qk.desc,weak:qk.weak,family:qk.family,rarity:qk.rarity,baseId:qk.id,uniqueChoices:qk.choices,level:1};
+    S.quirkLevel=1;S.quirkXP=0;S.v13.discovery.status='revealed';S.v13.discovery.rarity=qk.rarity;S.flags.quirkRevealed=true;
+    remember('Découverte de l’Alter',`Ton Alter est ${qk.name}. Rareté : ${qk.rarity}. Sa véritable nature reste encore à découvrir.`);
+    return S.quirk;
+  }
+  function uniqueEvent(){
+    if(!S.quirk||S.v13.discovery.status!=='revealed')return null;
+    if((S.v13.alterChoices||[]).length>=4)return null;
+    const qk=S.quirk, choices=qk.uniqueChoices||['Augmenter la puissance','Améliorer le contrôle','Chercher une application inattendue'];
+    return {id:'v13-alter-choice-'+(S.v13.alterChoices.length+1),type:'Alter',title:`🧬 Ton Alter : ${qk.name}`,weight:12,need:()=>true,
+      text:()=>`Ton Alter montre une possibilité nouvelle. Tu dois décider comment le développer. Cette décision orientera ses futures techniques.`,
+      choices:choices.map((label,i)=>[label,()=>{S.v13.alterChoices.push({label,day:S.day});S.v13.alterBranches.push(i);S.quirkXP+=8+i*3;modStat(i===0?'force':i===1?'controle':'technique',2);remember('Choix d’Alter',`${qk.name} : ${label}.`);return`Tu développes ${qk.name} autour de « ${label} ».` }])};
+  }
+  function discoveryEvent(){
+    if(S.quirk||S.v13.discovery.status==='none'||S.v13.discovery.checks>=2)return null;
+    return {id:'v13-discovery',type:'Secret',title:'🔬 Examen du potentiel',weight:15,need:()=>S.day>=3,
+      text:()=>`Un examen plus précis peut révéler quelque chose sur ton facteur d’Alter. Personne ne peut encore te dire ce que tu es réellement capable de faire.`,
+      choices:[
+        ['Faire l’examen complet',()=>{S.v13.discovery.checks++;S.v13.discovery.manifestation++;return reveal()?`Les résultats sont formels : ton Alter est ${S.quirk.name}.`:`Les résultats sont formels : aucun Alter détectable. Tu devras construire ton propre chemin.`}],
+        ['Refuser pour l’instant',()=>{S.v13.discovery.checks++;S.v13.discovery.manifestation+=2;S.hidden.inheritScore+=1;return'Quelque chose reste volontairement inconnu. Cette décision pourrait changer la suite.'}]
+      ]};
+  }
+  function maybeSecretAFO(){
+    if(!S||S.v13.afo.refused||S.v13.afo.stage>=2||S.flags.inheritedPower)return null;
+    const score=(S.villain?.notoriety||0)+(S.alignment?.criminal||0)+(S.v13.afo.score||0)+(S.stats?.courage||0)*.15;
+    if(score<18||!chance(0.012))return null;
+    return {id:'v13-afo-whisper-'+S.v13.afo.stage,type:'Secret',title:'👁️ Une anomalie',weight:1,need:()=>true,
+      text:()=>`Quelqu’un semble s’intéresser à ton facteur d’Alter. Tu sens une présence capable de comprendre des choses que personne ne t’a jamais expliquées.`,
+      choices:[
+        ['Chercher à comprendre',()=>{S.v13.afo.stage=1;S.v13.afo.score+=8;remember('Anomalie','Quelqu’un semble connaître ton Alter mieux que toi.');return'Une piste s’ouvre. Mais elle ne ressemble pas à une piste de héros.'}],
+        ['T’éloigner',()=>{S.v13.afo.refused=true;S.v13.afo.score-=5;return'Tu refuses de suivre cette piste inquiétante.'}]
+      ]};
+  }
+  function afoOffer(){
+    if(!S||S.v13.afo.stage!==1||S.v13.afo.refused)return null;
+    return {id:'v13-afo-offer',type:'Secret',title:'👁️ Le pouvoir volé',weight:1,need:()=>true,
+      text:()=>`Une proposition impossible t’est faite : accepter un pouvoir qui ne devrait pas pouvoir être pris. Ce choix pourrait faire basculer toute ta carrière.`,
+      choices:[
+        ['Accepter le pouvoir',()=>{S.v13.afo.stage=2;S.v13.afo.eligible=true;S.villain=S.villain||{};S.villain.active=true;S.villain.alias=S.villain.alias||'Héritier du vol';S.quirk={id:'all-for-one',name:'All For One',family:'Transmission / Vol',rarity:'Mythique',desc:'Un pouvoir capable de voler, stocker et transmettre des Alters.',weak:'surcharge, incompatibilités et conséquences physiques'};S.quirkLevel=1;S.quirkXP=0;S.flags.quirkRevealed=true;S.flags.allForOne=true;S.alignment.criminal+=12;S.rep-=4;remember('Pouvoir interdit','Tu as accepté un pouvoir capable de voler des Alters.');return'Tu acceptes. À partir de maintenant, chaque Alter rencontré peut devenir une tentation.'}],
+        ['Refuser',()=>{S.v13.afo.refused=true;S.v13.afo.stage=0;S.v13.afo.score=-20;S.alignment.ethics+=8;remember('Refus du pouvoir','Tu as refusé un pouvoir qui aurait pu tout changer.');return'Tu refuses. Le pouvoir proposé disparaît, mais le souvenir de cette offre restera.'}]
+      ]};
+  }
+  function lifeEvent(){
+    if(S.day<2)return null;
+    const pool=[
+      {id:'v13-work',title:'💼 Un petit travail',text:'Tes ressources diminuent. Tu peux gagner un peu d’argent sans abandonner tes études.',choices:[['Travailler',()=>{const gain=60+Math.floor(rnd(80));S.money+=gain;S.v13.life.work++;S.v13.moneyHistory.push({day:S.day,delta:gain,why:'travail'});return`Tu travailles quelques heures. +${gain} ¥.`}],['Refuser',()=>{S.v13.life.study++;modStat('intelligence',1);return'Tu préfères consacrer ton temps à tes études.'}]]},
+      {id:'v13-equipment',title:'🛠️ Une idée d’équipement',text:'Tu peux investir dans du matériel pour compléter ton style.',choices:[['Investir',()=>{if(S.money<80)return'Tu n’as pas assez d’argent.';S.money-=80;S.equipment.push({name:'Prototype V13',bonus:2});S.v13.life.work++;return'Tu finances un prototype. Ton équipement devient plus personnel.'}],['Économiser',()=>{S.money+=20;return'Tu gardes ton argent pour une dépense plus importante.'}]]},
+      {id:'v13-social',title:'☕ Vie sociale',text:'Une relation importante réclame ton attention.',choices:[['Passer du temps avec quelqu’un',()=>{const n=pick(REL_NAMES);modRel(5,n);S.v13.life.social++;return`Tu prends du temps pour ${n}. Votre relation se renforce.`}],['Rester seul',()=>{modStat('intelligence',1);return'Tu profites du calme pour réfléchir.'}]]}
+    ];
+    return pick(pool);
+  }
+  function worldTick(){
+    init();S.v13.worldTick++;
+    S.world=S.world||{ticks:0,npcs:{},news:[]};S.world.ticks++;
+    Object.keys(S.npcWorld||{}).forEach(n=>{const x=S.npcWorld[n];x.level=clamp((x.level||20)+(chance(.35)?1:0),1,100);x.bond=S.relations&&typeof S.relations[n]==='number'?S.relations[n]:x.bond||0;if(chance(.08))x.arc=(x.arc||0)+1;});
+    if(chance(.06)){const n=pick(Object.keys(S.npcWorld||{}));S.world.news.unshift({day:S.day,text:`${n} progresse de son côté. Le monde continue sans attendre ton personnage.`});S.world.news=S.world.news.slice(0,12)}
+    if(S.money<0){S.moneyDebt=Math.abs(S.money);S.money=0}else if(S.moneyDebt){const pay=Math.min(S.moneyDebt,Math.floor(S.money*.25));S.moneyDebt-=pay;S.money-=pay}
+  }
+  function legendary(title,text){
+    if(!S||!S.v13)return;
+    S.v13.legendaryMoments.push({title,text,day:S.day,season:seasonName()});
+    S.v13.legendaryMoments=S.v13.legendaryMoments.slice(-20);
+    remember('Moment légendaire',`${title} — ${text}`);
+  }
+  function renderV13(){
+    if(!S||!q('powerContent'))return;
+    const el=q('powerContent');
+    const existing=el.querySelector('.v13-alter-panel');if(existing)existing.remove();
+    const d=S.v13?.discovery||{};
+    const a=S.quirk;
+    const html=document.createElement('div');html.className='notice v13-alter-panel';
+    if(d.status==='unknown')html.innerHTML='<b>🧬 Alter inconnu</b><p class="small muted">Ton facteur d’Alter n’a pas encore été révélé. Les examens et événements pourront le dévoiler.</p>';
+    else if(d.status==='none')html.innerHTML='<b>⚪ Sans Alter</b><p class="small muted">Ton potentiel ne s’est pas manifesté. Ta progression physique, stratégique et technologique reste entièrement ouverte.</p>';
+    else if(a)html.innerHTML=`<b>🧬 ${a.name}</b><span class="tag">${a.rarity}</span><p class="small">${a.desc}</p><p class="small muted">Contrecoup : ${a.weak}</p><p class="small">Décisions propres à cet Alter : ${(S.v13.alterChoices||[]).length}/4</p>`;
+    el.appendChild(html);
+  }
+  const oldStart=startGame;
+  startGame=function(){
+    const sel=q('quirkSituation');if(sel)sel.value='unknown';
+    oldStart();init();
+    S.quirk=null;S.quirkLevel=0;S.quirkXP=0;S.v13.discovery={status:'unknown',checks:0,manifestation:0,rarity:null};
+    S.flags.quirkMystery=true;S.flags.quirkRevealed=false;
+    saveGame();render();
+  };
+  const oldReveal=window.revealQuirk||revealQuirk;
+  window.revealQuirk=function(){return reveal()};
+  const oldGenerate=generateEvent;
+  generateEvent=function(isFinale=false){
+    init();
+    if(!isFinale){
+      const special=maybeSecretAFO()||afoOffer()||uniqueEvent()||discoveryEvent();
+      if(special&&chance(.72)){currentEvent=special;S.currentEventId=special.id;S.currentEventState={day:S.day,phase:S.phase,renderedAt:Date.now()};return;}
+      if(chance(.10)){const life=lifeEvent();if(life){currentEvent=life;S.currentEventId=life.id;S.currentEventState={day:S.day,phase:S.phase,renderedAt:Date.now()};return;}}
+    }
+    oldGenerate(isFinale);
+  };
+  const oldChoose=choose;
+  choose=function(index){
+    const before=S&&S.quirk?S.quirkXP:0;
+    oldChoose(index);
+    if(S&&!S.runEnded){worldTick();
+      if(S.quirk&&S.quirkXP-before>=8&&S.quirkXP>=20&&!has('v13technique')){setFlag('v13technique');legendary('Première technique personnelle',`Tu commences à utiliser ${S.quirk.name} d’une manière qui t’appartient vraiment.`)}
+      if(S.rep>=45&&!has('v13recognized')){setFlag('v13recognized');legendary('Reconnaissance',`Ton nom commence à être connu pour ce que tu as réellement accompli.`)}
+      if((S.v13.life.social||0)>=5&&!has('v13social')){setFlag('v13social');legendary('Lien durable','Une relation importante a survécu à plusieurs saisons.');}
+      saveGame();render();
+    }
+  };
+  const oldRenderPower=renderPower;
+  renderPower=function(){oldRenderPower();renderV13()};
+  const oldFinish=finishRun;
+  finishRun=function(outcome){
+    if(S&&S.v13){S.v13.finalSnapshot={rarity:S.quirk?.rarity||null,alter:S.quirk?.name||'Sans Alter',moments:S.v13.legendaryMoments?.slice(-8)||[],career:S.career?.path||'student'};}
+    oldFinish(outcome);
+  };
+  // Initialise the layer for existing saves without changing their current Alter.
+  try{init()}catch(e){console.warn('V13 init',e)}
+  document.title='MHA Road — V13';
+})();
+
+/* V13 styling */
+(function(){
+  const st=document.createElement('style');st.textContent=`
+  .v13-alter-panel{margin-top:12px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(135deg,rgba(88,166,255,.08),rgba(180,100,255,.07));}
+  .v13-alter-panel .tag{float:right;margin-left:8px}
+  `;document.head.appendChild(st);
 })();
 
 </script>
