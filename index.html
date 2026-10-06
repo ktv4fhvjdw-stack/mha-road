@@ -1088,7 +1088,16 @@ function importSave(){
 }
 function newGame(){if(confirm("Abandonner la carrière actuelle ? Ta progression de boutique restera conservée.")){localStorage.removeItem(KEY);localStorage.removeItem("mha-road-v8-save");localStorage.removeItem("mha-road-v9-save");localStorage.removeItem("mha-road-v9.2-save");localStorage.removeItem("mha-road-v6-save");localStorage.removeItem(OLD_KEY);showMenu()}}
 renderMenu();window.addEventListener("beforeunload",()=>{try{if(S&&!S.runEnded)saveGame()}catch(e){}});
-if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js", {updateViaCache:"none"}).then(reg=>{reg.update().catch(()=>{});}).catch(()=>{}));}
+if("serviceWorker" in navigator){
+ window.addEventListener("load",()=>{
+  let reloaded=false;
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{if(!reloaded){reloaded=true;location.reload();}});
+  navigator.serviceWorker.register("./service-worker.js",{updateViaCache:"none"}).then(reg=>{
+   reg.update().catch(()=>{});
+   if(reg.waiting) reg.waiting.postMessage({type:"SKIP_WAITING"});
+  }).catch(()=>{});
+ });
+}
 </script>
 </body>
 </html>
