@@ -771,6 +771,96 @@ const EVENTS=[
 
 ];
 
+
+/* ================= V13 DYNAMIC EVENT CATALOG =================
+   300 context-aware events: 10 domains x 30 variants.
+   They are generated once at load and become part of the procedural pool.
+=============================================================== */
+(function(){
+  const V13_EVENT_DOMAINS=[
+    {key:'school',type:'École',weight:2.8,minAge:13,maxAge:25,titles:[
+      'Un cours change de programme','Travail de groupe imprévu','Le professeur te met au défi','Un devoir particulièrement exigeant','Une place change dans la classe','Un exercice sous pression','Une erreur au tableau','Une discussion après le cours','Une évaluation sans avertissement','Un camarade demande ton aide','Une journée d’observation','Un exercice chronométré','Un professeur remarque un détail','Un débat divise la classe','Une consigne volontairement ambiguë','Une démonstration technique','Un cours en extérieur','Un exercice en binôme','Une journée de récupération scolaire','Un problème à résoudre en équipe','Un élève prend une initiative','Un résultat te surprend','Une remarque te fait réfléchir','Un changement de planning','Un projet collectif prend forme','Un professeur propose une méthode différente','Une difficulté revient','Une occasion de rattrapage','Une responsabilité supplémentaire','Une journée où rien ne se passe comme prévu']},
+    {key:'training',type:'Entraînement',weight:2.5,minAge:13,maxAge:40,titles:[
+      'Terrain d’entraînement libre','Séance de vitesse','Travail de puissance','Travail de précision','Circuit d’endurance','Duel technique','Exercice les yeux fermés','Parcours d’obstacles','Entraînement sous fatigue','Séance avec handicap','Répétition d’un mouvement','Test de réflexes','Travail de mobilité','Exercice de récupération active','Simulation de sauvetage','Entraînement contre la montre','Séance en environnement réduit','Travail de posture','Enchaînement complexe','Exercice avec partenaire','Défi de constance','Séance après une mauvaise nuit','Entraînement silencieux','Travail de respiration','Simulation imprévisible','Test de résistance','Révision d’une ancienne erreur','Séance sans ton équipement habituel','Entraînement sous observation','Objectif personnel à dépasser']},
+    {key:'relation',type:'Relation',weight:2.4,minAge:13,maxAge:40,titles:[
+      'Une conversation devient sérieuse','Un camarade te cherche','Quelqu’un veut te remercier','Une confiance fragile','Une invitation inattendue','Un malentendu','Une promesse à tenir','Un conseil demandé','Une confidence','Une sortie improvisée','Une dispute silencieuse','Un rival reconnaît tes progrès','Une personne te défend','Une personne te critique','Un message tardif','Une rencontre loin de l’école','Une jalousie inattendue','Une occasion de t’excuser','Une décision à prendre à deux','Une relation change de ton','Un secret partagé','Un moment de calme','Une aide en retour','Une absence remarquée','Une rencontre avec un proche','Une blague qui va trop loin','Une limite à poser','Un compliment sincère','Une ancienne tension revient','Un lien devient important']},
+    {key:'social',type:'Social',weight:2.1,minAge:13,maxAge:40,titles:[
+      'Déjeuner animé','Sortie après les cours','Soirée tranquille','Une activité de groupe','Un événement local','Un café après l’entraînement','Une invitation de dernière minute','Une discussion sur les héros','Une partie improvisée','Une fête d’élèves','Une promenade','Une journée sans entraînement','Une activité associative','Une rencontre dans un magasin','Une conversation dans les transports','Un repas partagé','Une photo de groupe','Une activité culturelle','Une soirée jeux','Un événement sportif','Une rencontre avec des anciens','Une sortie qui coûte plus cher que prévu','Une journée où tu fais connaissance','Un groupe cherche un volontaire','Une invitation que tu hésites à accepter','Une occasion de te faire remarquer','Une activité qui ne te ressemble pas','Un moment de solitude choisi','Un événement tourne mal','Un souvenir à créer']},
+    {key:'alter',type:'Alter',weight:2.0,minAge:13,maxAge:40,titles:[
+      'Une réaction inhabituelle de ton Alter','Ton Alter réagit à une émotion','Une nouvelle limite apparaît','Une utilisation inattendue','Un contrecoup te surprend','Une technique échoue','Une technique fonctionne mieux que prévu','Une application défensive','Une application de mobilité','Une application de précision','Une utilisation sans combat','Une interaction étrange avec un autre Alter','Un test de portée','Un test de durée','Un test de contrôle','Un exercice sous stress','Ton Alter change légèrement','Une sensation inconnue','Une manifestation devant témoin','Un professeur te demande de recommencer','Une erreur révèle une possibilité','Une faiblesse devient exploitable','Une nouvelle combinaison','Une technique personnelle se dessine','Un choix de spécialisation','Une évolution demande un sacrifice','Un usage interdit te tente','Une application non conventionnelle','Un détail de ton facteur d’Alter','Ton potentiel semble plus grand que prévu']},
+    {key:'reputation',type:'Réputation',weight:1.7,minAge:13,maxAge:40,titles:[
+      'Ton nom circule','Une rumeur apparaît','Un inconnu te reconnaît','Une publication parle de toi','Un résultat attire l’attention','Une erreur devient publique','Un compliment est relayé','Un professeur te recommande','Un camarade parle de toi','Une vidéo de ton entraînement circule','Une réputation à construire','Une réputation à défendre','Un groupe te teste','Une opportunité liée à ton image','Une critique publique','Un admirateur discret','Un détracteur','Une invitation officielle','Une invitation douteuse','Une personne te demande conseil','Un journaliste local','Une marque remarque ton potentiel','Une agence pose une question','Un ancien adversaire parle de toi','Une rumeur revient','Une décision est jugée','Ton style devient reconnaissable','Ton absence est remarquée','Une erreur de communication','Un choix définit ton image']},
+    {key:'life',type:'Vie',weight:2.0,minAge:13,maxAge:40,titles:[
+      'Une dépense imprévue','Un petit boulot','Une corvée familiale','Un problème de transport','Une journée de repos','Une mauvaise nuit','Une bonne nouvelle familiale','Un imprévu à la maison','Une course urgente','Un achat tentant','Une occasion d’économiser','Une dette à régler','Un voisin demande de l’aide','Une journée sans écran','Un problème administratif','Une facture','Un objet cassé','Une journée particulièrement chargée','Un repas important','Une sortie coûteuse','Un rendez-vous oublié','Un trajet inhabituel','Un nouveau lieu','Une responsabilité familiale','Une récompense inattendue','Une journée productive','Une journée perdue','Un choix entre repos et activité','Une habitude à changer','Un objectif personnel']},
+    {key:'support',type:'Support',weight:1.8,minAge:13,maxAge:40,titles:[
+      'Un atelier ouvre ses portes','Un prototype attire ton attention','Une pièce casse','Un équipement doit être réglé','Une idée de gadget','Un test de protection','Un outil trop lourd','Un prototype instable','Une amélioration de mobilité','Une interface à personnaliser','Un ingénieur te questionne','Une réparation urgente','Une pièce rare','Un budget limité','Un choix de matériaux','Un test de résistance','Un équipement pour le quotidien','Une invention improvisée','Un outil qui ne fonctionne pas','Une solution simple','Une amélioration coûteuse','Un équipement à partager','Une technologie expérimentale','Un projet à présenter','Une idée venue d’un échec','Un réglage fin','Une maintenance','Une amélioration de sécurité','Une combinaison Alter-équipement','Une invention qui pourrait devenir ta signature']},
+    {key:'mission',type:'Mission',weight:1.5,minAge:15,maxAge:40,titles:[
+      'Une mission d’observation','Une évacuation mineure','Un incident dans un quartier','Un exercice de terrain','Une recherche de personne','Une patrouille encadrée','Un appel inattendu','Une intervention sous supervision','Une situation confuse','Un groupe de civils paniqués','Un délinquant opportuniste','Une mission de nuit','Une mission sous la pluie','Une mission dans un lieu fermé','Une intervention sans combat','Une intervention qui dégénère','Un choix de priorité','Une personne refuse d’évacuer','Un collègue se blesse','Une information contradictoire','Une mission chronométrée','Une mission où la réputation compte','Une mission où la discrétion prime','Une mission avec peu de ressources','Une erreur de coordination','Une menace inconnue','Une mission qui laisse une trace','Une décision sans bonne réponse','Une réussite inattendue','Une mission qui change la suite']},
+    {key:'mind',type:'Réflexion',weight:1.9,minAge:13,maxAge:40,titles:[
+      'Une soirée de réflexion','Tu repenses à une défaite','Tu analyses une victoire','Un doute revient','Une peur apparaît','Une ambition se précise','Une ancienne décision te gêne','Tu comprends une erreur','Tu envisages une autre voie','Une valeur devient importante','Tu te demandes qui tu veux devenir','Une responsabilité pèse','Une promesse revient en mémoire','Tu compares tes progrès','Une ancienne blessure influence ton choix','Tu dois accepter une limite','Tu découvres une motivation','Tu réalises que quelqu’un t’influence','Tu veux changer une habitude','Tu te demandes si tu vas trop vite','Tu choisis une priorité','Tu renonces à quelque chose','Tu décides de persévérer','Tu fais le bilan','Tu fixes un objectif','Tu revois une stratégie','Tu prends conscience d’un coût','Tu cherches une nouvelle méthode','Tu assumes une conséquence','Tu écris la suite de ton parcours']}
+  ];
+  const people=['Izuku','Ochaco','Shoto','Tenya','Eijiro','Momo','Tsuyu','Katsuki'];
+  function addDynamicEvent(d,i,title){
+    const id=`v13-${d.key}-${i+1}`;
+    const phase=(i%4)+1;
+    const need=()=>{
+      if(!S||S.age<d.minAge||S.age>d.maxAge)return false;
+      if(d.key==='alter')return !!S.quirk || !!S.flags?.noQuirk;
+      if(d.key==='mission')return S.schoolStage!=='college' && (S.age>=15||S.career?.path==='hero'||S.career?.path==='independent');
+      if(d.key==='school')return S.schoolStage!=='college' && ['U.A. — Filière héroïque','U.A. — Filière générale','Shiketsu'].includes(S.school);
+      if(d.key==='support')return S.schoolStage!=='college' || !!S.flags?.noQuirk;
+      return true;
+    };
+    const choice=(label,fn)=>[label,fn];
+    const choices=[];
+    if(d.key==='training'){
+      const stat=['force','vitesse','technique','endurance','controle'][i%5];
+      choices.push(choice(['Travailler la puissance','Travailler la vitesse','Perfectionner la technique','Tenir plus longtemps','Chercher le contrôle'][i%5],()=>{modStat(stat,1+(i%3===0?1:0));S.energy-=7+(i%5);return`Tu consacres la séance à ${stat}. Le progrès est modeste, mais régulier.`}));
+      choices.push(choice('Prioriser la sécurité',()=>{modStat('defense',1);S.energy-=4;return'Tu travailles sans brûler tes réserves. Ta régularité progresse.'}));
+      choices.push(choice('Te dépasser',()=>{modStat('courage',1);S.energy-=12;if(chance(.12))S.injuries.general=Math.max(S.injuries.general||0,1);return'Tu repousses tes limites. Le gain est réel, mais le coût aussi.'}));
+    } else if(d.key==='relation'){
+      const n=people[i%people.length];
+      choices.push(choice('Être disponible',()=>{modRel(n,3);heroChoice();return`Tu prends le temps d’être présent pour ${n}.`}));
+      choices.push(choice('Garder une certaine distance',()=>{modStat('intelligence',1);return'Tu observes avant de t’engager davantage.'}));
+      choices.push(choice('Dire franchement ce que tu penses',()=>{modRel(n,(i%3===0)?5:-2);modStat('courage',1);return`Tu parles franchement à ${n}. La relation gagne en clarté.`}));
+    } else if(d.key==='social'){
+      choices.push(choice('Participer',()=>{S.v13.life.social=(S.v13.life.social||0)+1;S.energy-=3;return'Tu participes et rencontres de nouvelles personnes.'}));
+      choices.push(choice('Observer',()=>{modStat('intelligence',1);return'Tu préfères comprendre l’ambiance avant de t’exposer.'}));
+      choices.push(choice('Rentrer travailler',()=>{modStat('technique',1);S.energy-=5;return'Tu déclines et consacres ce temps à ta progression.'}));
+    } else if(d.key==='alter'){
+      choices.push(choice('Expérimenter',()=>{S.quirkXP=(S.quirkXP||0)+5;modStat('controle',1);S.energy-=8;return'Tu testes une utilisation différente de ton Alter.'}));
+      choices.push(choice('Analyser la limite',()=>{S.quirkXP=(S.quirkXP||0)+3;modStat('intelligence',1);return'Tu cherches d’abord à comprendre pourquoi ton Alter fonctionne ainsi.'}));
+      choices.push(choice('Repousser la limite',()=>{S.quirkXP=(S.quirkXP||0)+7;modStat('courage',1);S.energy-=13;if(chance(.10))S.injuries.general=Math.max(S.injuries.general||0,1);return'Tu forces ton Alter au-delà de son usage habituel.'}));
+    } else if(d.key==='support'){
+      choices.push(choice('Construire',()=>{S.money=Math.max(0,(S.money||0)-30);S.equipment=S.equipment||[];S.equipment.push(`Prototype ${i+1}`);modStat('intelligence',1);return'Tu investis dans une amélioration concrète.'}));
+      choices.push(choice('Optimiser sans acheter',()=>{modStat('technique',1);return'Tu trouves une solution avec les ressources déjà disponibles.'}));
+      choices.push(choice('Demander conseil',()=>{modRel('Momo',2);return'Tu apprends auprès de quelqu’un de plus expérimenté.'}));
+    } else if(d.key==='mission'){
+      choices.push(choice('Prioriser les civils',()=>{S.rep+=2;S.publicRep+=2;modStat('courage',1);return'Tu places la sécurité des civils avant le résultat spectaculaire.'}));
+      choices.push(choice('Analyser d’abord',()=>{modStat('intelligence',1);modStat('technique',1);return'Tu prends quelques secondes pour comprendre la situation.'}));
+      choices.push(choice('Prendre l’initiative',()=>{S.rep+=3;modStat('courage',1);S.energy-=8;return'Tu assumes la responsabilité de la décision.'}));
+    } else if(d.key==='reputation'){
+      choices.push(choice('Assumer',()=>{S.publicRep+=2;S.rep+=1;return'Tu assumes ton image au lieu de la fuir.'}));
+      choices.push(choice('Rester discret',()=>{modStat('controle',1);return'Tu refuses de laisser ta réputation dicter tes décisions.'}));
+      choices.push(choice('Transformer cela en opportunité',()=>{S.rep+=3;return'Tu utilises l’attention pour ouvrir une nouvelle possibilité.'}));
+    } else if(d.key==='life'){
+      choices.push(choice('T’en occuper immédiatement',()=>{S.v13.life.health=Math.max(0,(S.v13.life.health||100)-1);return'Tu règles le problème avant qu’il ne prenne de l’ampleur.'}));
+      choices.push(choice('Reporter pour travailler',()=>{S.money=(S.money||0)+20;S.v13.life.work=(S.v13.life.work||0)+1;return'Tu gagnes un peu d’argent, mais repousses le problème.'}));
+      choices.push(choice('Demander de l’aide',()=>{modRel(people[(i+2)%people.length],2);return'Tu acceptes de ne pas tout gérer seul.'}));
+    } else if(d.key==='mind'){
+      choices.push(choice('En tirer une leçon',()=>{modStat('intelligence',1);return'Tu transformes cette réflexion en apprentissage.'}));
+      choices.push(choice('Suivre ton instinct',()=>{modStat('courage',1);S.hidden.inheritScore+=1;return'Tu décides de faire confiance à ce que tu ressens.'}));
+      choices.push(choice('Ne rien changer',()=>{modStat('controle',1);return'Tu préfères consolider tes habitudes avant de bouleverser ton parcours.'}));
+    } else if(d.key==='school'){
+      choices.push(choice('Travailler sérieusement',()=>{modStat('intelligence',1);S.schoolResults.academic+=2;return'Tu prends le travail au sérieux.'}));
+      choices.push(choice('Chercher une solution créative',()=>{modStat('technique',1);S.schoolResults.practical+=2;return'Tu proposes une approche différente.'}));
+      choices.push(choice('Aider le groupe',()=>{modStat('courage',1);S.schoolResults.behavior+=2;heroChoice();return'Tu privilégies la réussite collective.'}));
+    }
+    EVENTS.push({id,type:d.type,title,weight:d.weight+(i%5)*.15,need,text:()=>`${title}. La situation dépend de ton parcours actuel, de ton état et de ce qui s’est déjà produit cette saison.`,choices});
+  }
+  V13_EVENT_DOMAINS.forEach(d=>d.titles.forEach((t,i)=>addDynamicEvent(d,i,t)));
+})();
+
 function revealQuirk(){
  if(S.quirk)return S.quirk;
  S.quirk=pick(QUIRKS);
