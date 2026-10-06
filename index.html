@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#080d19">
 <link rel="manifest" href="manifest.json">
-<title>MHA Road — V9.2</title>
+<title>MHA Road — V10</title>
 <style>
 :root{--bg:#070b14;--panel:#111a2b;--panel2:#17233a;--line:#2a3b5d;--txt:#f1f5ff;--muted:#9eacc8;--a:#70a7ff;--good:#58d89a;--bad:#ff7180;--gold:#ffd166;--violet:#9b83ff}
 *{box-sizing:border-box}html,body{margin:0;background:linear-gradient(180deg,#060a12,#0d1526 50%,#070b14);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -44,6 +44,7 @@ button{min-height:42px;transition:transform .12s,filter .12s,background .12s}but
 .action-summary{border:1px solid #35527e;background:linear-gradient(145deg,#12243f,#0b1526);padding:14px;border-radius:16px;margin:12px 0}.action-summary h3{margin:0 0 8px}.current-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:10px 0}.current-stat{display:flex;justify-content:space-between;align-items:center;background:#0a1424;border:1px solid #263858;border-radius:10px;padding:7px 9px;font-size:12px}.current-stat b{font-size:14px}.continue-btn{width:100%;margin-top:10px;font-size:15px;font-weight:800}.abandon-btn{background:#4a1d29!important;border-color:#8b3e50!important}.combat-card{scroll-margin-top:12px}.delta-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.delta{padding:8px 9px;border-radius:10px;background:#0a1220;border:1px solid #223653;font-size:12px}.delta b{float:right}.weekly-card{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}.week-progress{height:9px;background:#070d17;border-radius:99px;overflow:hidden;margin-top:7px}.week-progress>div{height:100%;background:linear-gradient(90deg,#5d9cff,#9b83ff);border-radius:99px}.action-badge{font-size:11px;padding:5px 8px;border-radius:999px;background:#1e3151;border:1px solid #38557f}.achievement{padding:10px;border:1px solid #4a3d70;border-radius:12px;background:#17132a;margin:7px 0}.ending{padding:14px;border-radius:15px;background:linear-gradient(145deg,#1b2b4b,#101827);border:1px solid #405d8e}.event-actions{display:grid;gap:8px}.event-actions .choice{margin:0}
 @media(max-width:700px){.shop-grid,.menu-actions{grid-template-columns:1fr}.wrap{padding-bottom:105px}.tabs{top:0}.sticky-actions{display:block}.card{border-radius:16px}.res{grid-template-columns:repeat(2,1fr)}.delta-grid{grid-template-columns:1fr 1fr}.event-actions{gap:7px}}
 
+.season-v10{border:1px solid #3d5f96;background:linear-gradient(145deg,#10223b,#0b1424);padding:12px;border-radius:16px}.season-v10 b{font-size:16px}.route-chip{display:inline-block;padding:5px 8px;border-radius:999px;background:#152743;border:1px solid #2c466f;margin:3px 3px 0 0;font-size:12px}
 </style>
 </head>
 <body>
@@ -113,7 +114,7 @@ button{min-height:42px;transition:transform .12s,filter .12s,background .12s}but
 
 <section class="card">
 <h3>Actions de la semaine</h3>
-<div id="weeklyActionsPanel"></div>
+<div id="weeklyActionsPanel"></div><div id="quirklessRoutePanel"></div>
 <button onclick="restDay()">🌙 Récupération</button><button id="retireBtn" class="good hidden" onclick="retireNow()">🏖️ Prendre ma retraite</button>
 <button onclick="saveGame()">💾 Sauvegarder</button>
 <button onclick="exportSave()">📦 Exporter</button>
@@ -127,7 +128,8 @@ button{min-height:42px;transition:transform .12s,filter .12s,background .12s}but
 
 <script>
 "use strict";
-const KEY="mha-road-v9-save";
+const KEY="mha-road-v10-save";
+const LEGACY_KEYS=["mha-road-v9.2-save","mha-road-v9-save","mha-road-v8-save","mha-road-v7-save","mha-road-v6-save"];
 const META_KEY="mha-road-v7-meta";
 const SHOP_ITEMS={
   heart:{name:"Cœur blindé",desc:"+20 PV max au début de chaque nouvelle carrière.",cost:70,kind:"maxHp",value:20},
@@ -163,7 +165,14 @@ function pick(a){return a[Math.floor(rnd(a.length))]}
 function chance(p){return rnd()<p}
 function has(f){return !!S.flags[f]}
 function setFlag(f,v=true){S.flags[f]=v}
-function modStat(k,n){S.stats[k]=clamp((S.stats[k]||0)+n,1,100)}
+function modStat(k,n){
+ let g=n;
+ if(S && S.version>=10 && S.progressionReady){
+  const a=Math.abs(n),sg=Math.sign(n)||1;
+  g=sg*Math.max(1,Math.round(a*0.45));
+ }
+ S.stats[k]=clamp((S.stats[k]||0)+g,1,100)
+}
 function modRel(n,nv){S.relations[n]=clamp((S.relations[n]||0)+nv,-100,100)}
 function log(text){S.history.unshift({day:S.day,text});S.history=S.history.slice(0,150)}
 function toast(t){const e=q("toast");e.textContent=t;e.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display="none",1800)}
@@ -207,7 +216,7 @@ function startGame(){
  const situation=val("quirkSituation");
  const base={force:25,vitesse:25,defense:25,endurance:25,intelligence:25,technique:25,controle:20,courage:25};
  S={
-  version:9,name:val("name").trim()||"Héros",age:+val("age"),school:"Collège — classe de 4e",origin:val("origin"),personality:val("personality"),
+  version:10,name:val("name").trim()||"Héros",age:+val("age"),school:"Collège — classe de 4e",origin:val("origin"),personality:val("personality"),
   quirkSituation:situation,quirk:null,quirkLevel:0,quirkXP:0,day:1,week:1,phase:"Matin",energy:100,hp:100,maxHp:100,money:120,rep:0,
   stats:base,relations:Object.fromEntries(REL_NAMES.map(n=>[n,0])),relationType:{},injuries:{},flags:{},history:[],seen:{},cooldowns:{},
   arc:"Début du collège",arcProgress:0,
@@ -218,10 +227,12 @@ function startGame(){
   factions:{hero:0,underground:0,law:0}, enemies:{}, equipment:[], mission:null, careerRank:0, publicRep:0, notoriety:0, moneyDebt:0, injuriesHistory:[],
   rng:(Date.now()%2147483647)||12345,
   currentEventId:null,currentEventState:null,combat:null,runEnded:false,metaRevives:0,startingAge:+val("age"),lifeYear:1,periodType:"week",periodActions:0,
-  hidden:{inheritScore:0,inheritCandidate:false,secretRoll:0},dayActions:0,weeklyActions:0,weekEventIds:[],recentEvents:[],lastActionSummary:null,awaitingContinue:false,achievements:[]
+  hidden:{inheritScore:0,inheritCandidate:false,secretRoll:0},dayActions:0,weeklyActions:0,weekEventIds:[],recentEvents:[],lastActionSummary:null,awaitingContinue:false,achievements:[],season:0,seasonFinale:false,progressionReady:false,quirklessRoute:null
  };
  applyCreation();
+ S.progressionReady=false;
  applyMetaBoosts();
+ S.progressionReady=true;
  q("creation").classList.add("hidden");q("game").classList.remove("hidden");
  log("Le premier chapitre commence. Ton histoire n’est pas écrite d’avance.");
  beginDay();
@@ -244,24 +255,23 @@ function applyCreation(){
  if(S.quirkSituation==="unknown"){S.flags.quirkMystery=true}
 }
 function periodLabel(){
- const adult=S.age>=18;
- if(!adult)return `Semaine ${S.week}`;
- const season=["Printemps","Été","Automne","Hiver"][(S.periodActions||0)];
- return `Année ${S.age} · ${season}`;
+ const seasons=["Printemps","Été","Automne","Hiver"];
+ return `Année ${S.lifeYear} · ${seasons[S.season||0]}`;
 }
-function actionsPerPeriod(){return S.age>=18?4:3}
-function periodLengthDays(){return S.age>=18?91:7}
+function actionsPerPeriod(){return 6}
+function seasonName(){return ["Printemps","Été","Automne","Hiver"][S.season||0]}
 function beginDay(){
  if(S.day>1){
   S.energy=clamp(S.energy+42);S.hp=clamp(S.hp+14,0,S.maxHp);
   Object.keys(S.injuries).forEach(k=>{S.injuries[k]--;if(S.injuries[k]<=0)delete S.injuries[k]});
  }
  S.week=Math.floor((S.day-1)/7)+1;
- S.lifeYear=Math.floor((S.week-1)/52)+1;
+ S.lifeYear=Math.floor((S.day-1)/364)+1;
  S.age=(S.startingAge||S.age)-1+S.lifeYear;
- S.periodType=S.age>=18?"year":"week";
- S.periodActions=0;S.weeklyActions=0;S.dayActions=0;S.weekEventIds=[];
- S.phase=S.age>=18?"Printemps":"Action 1/3";
+ S.periodType="season";
+ S.periodActions=0;S.weeklyActions=0;S.dayActions=0;S.weekEventIds=[];S.seasonFinale=false;
+ S.season=Math.floor(((S.day-1)%364)/91);
+ S.phase=seasonName();
  updateSchoolResults();
  if(S.age>=60 && S.age<70 && !has("retirementOffer")){S.arc="Fin de carrière";log("À partir de 60 ans, la retraite devient une possibilité. Tu peux continuer aussi longtemps que tu le souhaites, jusqu’à 70 ans.");}
  if(S.age>=70){finishRun("retirement");return;}
@@ -281,7 +291,7 @@ function abandonRun(){
  if(!S||S.runEnded)return;
  if(!confirm("Abandonner cette partie ? Toute la progression de cette carrière sera supprimée. Tes bonus de boutique et succès resteront conservés."))return;
  localStorage.removeItem(KEY);
- localStorage.removeItem("mha-road-v8-save");
+ localStorage.removeItem("mha-road-v8-save");localStorage.removeItem("mha-road-v9-save");localStorage.removeItem("mha-road-v9.2-save");
  localStorage.removeItem("mha-road-v7-save");
  localStorage.removeItem("mha-road-v6-save");
  localStorage.removeItem(OLD_KEY);
@@ -294,26 +304,27 @@ function advanceAfterChoice(){
  S.weeklyActions=(S.weeklyActions||0)+1;
  S.dayActions=S.weeklyActions;
  const max=actionsPerPeriod();
+ if(S.weeklyActions===5){
+  S.seasonFinale=true;
+  S.phase=`Finale de ${seasonName()}`;
+  generateEvent(true);
+  render();saveGame();return;
+ }
  if(S.weeklyActions>=max){endDay();return}
- if(S.age>=18){const seasons=["Printemps","Été","Automne","Hiver"];S.phase=seasons[S.weeklyActions];}
- else S.phase=`Action ${S.weeklyActions+1}/3`;
+ S.phase=seasonName();
  generateEvent();render();saveGame();
 }
 function endDay(){
- if(S.age<18){
-  if(S.week%4===0){S.money+=80;log("Une allocation / rémunération arrive : +80 ¥.");}
-  S.day+=7;
- }else{
-  S.day+=periodLengthDays();
-  S.money+=Math.max(120,Math.round(180+S.careerRank*8));
-  S.publicRep=clamp(S.publicRep+Math.round((S.rep-S.publicRep)*.06),-100,100);
- }
+ S.day+=91;
+ S.money+=Math.max(120,Math.round(180+S.careerRank*8));
+ S.publicRep=clamp(S.publicRep+Math.round((S.rep-S.publicRep)*.06),-100,100);
+ const oldAge=S.age;
  S.week=Math.floor((S.day-1)/7)+1;
- const nextAge=(S.startingAge||12)-1+Math.floor((S.week-1)/52)+1;
- if(nextAge!==S.age){
+ const nextAge=(S.startingAge||12)-1+Math.floor((S.day-1)/364)+1;
+ if(nextAge!==oldAge){
   S.age=nextAge;
-  S.lifeYear=Math.floor((S.week-1)/52)+1;
-  log(`🎂 Tu entres dans ta ${S.age}e année. Une nouvelle période de vie commence.`);
+  S.lifeYear=Math.floor((S.day-1)/364)+1;
+  log(`🎂 Tu entres dans ta ${S.age}e année. Une nouvelle année commence.`);
   S.arc=S.age>=18?"Nouvelle année de carrière":"Nouvelle année scolaire";
   S.weekEventIds=[];
  }
@@ -542,11 +553,15 @@ const EVENTS=[
  ["Tester la nouvelle utilisation",()=>{revealQuirk();S.quirkLevel=1;S.quirkXP=10;modStat("technique",6);return`Tu comprends que ${S.quirk.name} possède une autre facette.`}],
  ["Garder l’idée secrète",()=>{revealQuirk();S.quirkLevel=1;S.quirkXP=12;modStat("intelligence",4);setFlag("secretQuirkTechnique");return"Tu décides de ne pas montrer immédiatement ce que tu as découvert."}]
 ]},
-{id:"noquirk",type:"Parcours spécial",title:"Le chemin sans Alter",weight:3,need:()=>S.flags.noQuirk&&!has("noQuirkPath")&&S.day>=3,text:()=>`Tu sais que tu n’as pas d’Alter. Dans un monde de super-pouvoirs, tu dois construire autre chose : technique, analyse, équipement et discipline.`,choices:[
- ["Combat rapproché",()=>{setFlag("noQuirkPath");modStat("technique",5);modStat("vitesse",4);return"Tu commences à construire un style basé sur la technique."}],
- ["Physique et endurance",()=>{setFlag("noQuirkPath");modStat("force",4);modStat("endurance",5);return"Ton corps devient ton premier outil."}],
- ["Analyse tactique",()=>{setFlag("noQuirkPath");modStat("intelligence",7);return"Tu apprends à gagner avant même d’engager le combat."}],
- ["Équipement de soutien",()=>{setFlag("noQuirkPath");setFlag("supportRoute");S.money-=40;modStat("technique",6);return"Tu investis dans un premier équipement de soutien."}]
+{id:"noquirk",type:"Parcours spécial",title:"Le chemin sans Alter",weight:4,need:()=>S.flags.noQuirk&&!has("noQuirkPath")&&S.day>=3,text:()=>`Tu sais que tu n’as pas d’Alter. Tu peux construire ta propre voie. Rien ne t’oblige à devenir un simple combattant.`,choices:[
+ ["🥋 Combattant",()=>{setFlag("noQuirkPath");S.quirklessRoute="combat";modStat("technique",5);modStat("vitesse",4);return"Tu construis un style de combat rapproché fondé sur la technique et la mobilité."}],
+ ["🧠 Stratège",()=>{setFlag("noQuirkPath");S.quirklessRoute="strategist";modStat("intelligence",6);modStat("controle",3);return"Tu décides de gagner par l’analyse, l’anticipation et la préparation."}],
+ ["🦿 Support Gear",()=>{setFlag("noQuirkPath");setFlag("supportRoute");S.quirklessRoute="gear";S.money=Math.max(0,S.money-40);modStat("technique",5);return"Tu investis tes premières ressources dans un équipement de soutien."}],
+ ["🥷 Mobilité",()=>{setFlag("noQuirkPath");S.quirklessRoute="mobility";modStat("vitesse",5);modStat("technique",3);return"Tu développes une méthode basée sur l’esquive, le déplacement et le terrain."}],
+ ["🛡️ Protecteur",()=>{setFlag("noQuirkPath");S.quirklessRoute="protector";modStat("defense",4);modStat("courage",5);S.hidden.inheritScore+=4;return"Tu choisis de devenir celui qui se place entre le danger et les autres."}],
+ ["🔧 Inventeur",()=>{setFlag("noQuirkPath");S.quirklessRoute="inventor";modStat("intelligence",5);modStat("technique",4);return"Tu veux concevoir tes propres outils plutôt que subir les limites de ton absence d’Alter."}],
+ ["🔥 Dépassement humain",()=>{setFlag("noQuirkPath");S.quirklessRoute="extreme";modStat("force",4);modStat("endurance",4);return"Tu choisis une voie plus risquée : pousser ton corps au-delà de ses limites."}],
+ ["🎯 Construire un hybride",()=>{setFlag("noQuirkPath");S.quirklessRoute="hybrid";modStat("technique",3);modStat("intelligence",3);return"Tu refuses de te spécialiser trop tôt. Ton style se construira par tes décisions futures."}]
 ]},
 {id:"inheritHint",type:"Secret",title:"Le héros qui pose trop de questions",weight:0.5,need:()=>S.hidden.inheritScore>=25&&S.rep>=15&&!has("inheritHint")&&S.day>=15,text:()=>`Un héros professionnel te demande de rester après l’entraînement. Il ne parle pas de tes notes. Il semble surtout vouloir comprendre pourquoi tu continues à te relever.`,choices:[
  ["Accepter de parler",()=>{setFlag("inheritHint");S.hidden.inheritScore+=10;modRel("Aizawa",3);return"Tu acceptes un entretien étrange. Quelque chose semble se préparer."}],
@@ -785,8 +800,18 @@ function getEnding(outcome){
  if(S.career.path==="independent")return {title:"🧭 Indépendant",desc:"Tu refuses les parcours classiques et construis ton propre chemin."};
  return {title:"📘 Une carrière commence",desc:"Ton histoire se termine ici, mais ta prochaine partie pourra emprunter une route complètement différente."};
 }
-function generateEvent(){
+function generateSeasonFinale(){
+ const titles=["Bilan du Printemps","Épreuve de l’Été","Tournant de l’Automne","Dernier choix de l’Hiver"];
+ const idx=S.season||0;
+ return {id:`seasonFinale${idx}`,type:"Fin",title:titles[idx],weight:10,need:()=>true,text:()=>`La saison touche à sa fin. Une décision importante peut influencer les prochains mois. Ton parcours, tes relations et ton état actuel sont pris en compte.`,choices:[
+  ["Tout donner",()=>{modStat("courage",2);modStat("technique",2);S.rep+=3;S.energy-=18;return"Tu termines la saison en assumant pleinement tes ambitions."}],
+  ["Protéger tes acquis",()=>{modStat("defense",2);modStat("intelligence",2);S.energy=clamp(S.energy-8);return"Tu privilégies la stabilité et construis une base solide pour la suite."}],
+  ["Tenter quelque chose de nouveau",()=>{modStat("intelligence",2);modStat("controle",2);S.rep+=1;S.hidden.inheritScore+=2;return"Tu prends un risque calculé. Cette décision pourra produire des conséquences plus tard."}]
+ ]};
+}
+function generateEvent(isFinale=false){
  if(combat)return;
+ if(isFinale || S.seasonFinale){ currentEvent=generateSeasonFinale(); S.currentEventId=currentEvent.id; S.currentEventState={day:S.day,phase:S.phase,renderedAt:Date.now()}; return; }
  const candidates=EVENTS.filter(e=>compatible(e));
  const weekIds=new Set(S.weekEventIds||[]);
  const recent=new Set((S.recentEvents||[]).slice(-5));
@@ -823,6 +848,7 @@ function choose(index){
    saveGame();render();return;
  }
  S.seen[eventId]=(S.seen[eventId]||0)+1;
+ if(S.seasonFinale){ S.seasonFinale=false; }
  S.currentEventId=null;S.currentEventState=null;
  if(S.energy<0){S.energy=0;S.injuries.general=2;log("La fatigue devient trop importante. Tu termines la semaine épuisé.")}
  updateRelationshipTypes();checkMilestones();
@@ -920,8 +946,9 @@ function render(){
  q("heroMeta").textContent=`${S.age} ans · ${S.school} · ${qtxt} · ${S.villain&&S.villain.active?"Vilain":"Voie "+(S.career.path||"étudiante")}`;
  q("hp").textContent=Math.round(S.hp)+"/"+S.maxHp;q("energy").textContent=Math.round(S.energy);
  q("rep").textContent=Math.round(S.rep);q("money").textContent=S.money+" ¥";q("day").textContent=S.day;
- q("date").textContent=S.age>=18?`Âge ${S.age} ans · Année de carrière ${S.lifeYear} · ${S.phase} · ${S.weeklyActions||0}/4 actions`:`Âge ${S.age} ans · Collège · Semaine ${S.week} · ${S.phase} · ${S.weeklyActions||0}/3 actions`;
+ q("date").textContent=`Âge ${S.age} ans · Année ${S.lifeYear} · ${S.phase} · ${(S.weeklyActions||0)<5?`${S.weeklyActions||0}/5 actions`:`Finale de saison`}`;
  q("arcTag").textContent=S.arc||"Année 1";
+ const routeEl=q("quirklessRoutePanel");if(routeEl){const names={combat:"Combattant",strategist:"Stratège",gear:"Support Gear",mobility:"Mobilité",protector:"Protecteur",inventor:"Inventeur",extreme:"Dépassement humain",hybrid:"Hybride"};routeEl.innerHTML=S.flags.noQuirk&&S.quirklessRoute?`<div class="season-v10"><b>🦾 Voie Quirkless : ${names[S.quirklessRoute]||S.quirklessRoute}</b><div class="small muted">Cette spécialisation évolue selon tes actions. Le One For All reste une possibilité secrète indépendante.</div></div>`:"";}
  const hero=q("heroName").closest(".hero");if(hero)hero.style.setProperty("--route",S.villain&&S.villain.active?"#ff7180":"#70a7ff");
  renderTimeline();renderWeeklyPanel();renderEvent();renderActionSummary();renderStats();renderRelations();renderPower();renderCareer();renderJournal();renderCombat();
  setTimeout(()=>{
@@ -930,10 +957,11 @@ function render(){
  },40);
 }
 function renderWeeklyPanel(){
- const done=S.weeklyActions||0,max=actionsPerPeriod(),pct=Math.round(done/max*100);
+ const done=S.weeklyActions||0,max=actionsPerPeriod();
+ const pct=Math.round(Math.min(done,5)/5*100);
  const el=q("weeklyActionsPanel");if(!el)return;
- const adult=S.age>=18;
- el.innerHTML=`<div class="weekly-card"><div><b>${adult?`Année ${S.age} · ${S.phase}`:`Semaine ${S.week}`}</b><div class="small muted">${done}/${max} actions utilisées · ${adult?"chaque action représente une grande période de l’année":"la semaine avance après la 3e action"}</div><div class="week-progress"><div style="width:${pct}%"></div></div></div><span class="action-badge">${done>=max?"Période terminée":`Action ${done+1}/${max}`}</span></div>`;
+ const finale=done>=5;
+ el.innerHTML=`<div class="weekly-card"><div><b>Année ${S.lifeYear} · ${seasonName()}</b><div class="small muted">${finale?"Finale de saison · une décision importante avant de passer à la suite":`${done}/5 actions de saison · puis une finale importante`}</div><div class="week-progress"><div style="width:${pct}%"></div></div></div><span class="action-badge">${finale?"⭐ FINALE":`Action ${done+1}/5`}</span></div>`;
  const rb=q("retireBtn");if(rb)rb.classList.toggle("hidden",!(S.age>=60));
 }
 function renderActionSummary(){
@@ -1024,7 +1052,8 @@ function restoreCurrentEvent(){
  currentEvent=e;return true;
 }
 function migrateState(){
- S.version=9;
+ S.version=10;
+ S.progressionReady=true;
  ensureV7();
  S.runEnded=false;S.metaRevives=S.metaRevives||0;S.startingAge=S.startingAge||Math.max(12,(S.age||12)-Math.floor(((S.week||1)-1)/52));S.lifeYear=S.lifeYear||Math.floor(((S.week||1)-1)/52)+1;S.periodType=S.periodType||(S.age>=18?"year":"week");S.periodActions=S.periodActions||0;S.weeklyActions=(typeof S.weeklyActions==="number"?S.weeklyActions:(S.dayActions||0));S.weekEventIds=S.weekEventIds||[];S.recentEvents=S.recentEvents||[];S.lastActionSummary=S.lastActionSummary||null;S.awaitingContinue=!!S.awaitingContinue;S.achievements=S.achievements||[];
  S.schoolStage=S.schoolStage||((S.day||1)<22?"college":"highschool");
@@ -1038,7 +1067,7 @@ function migrateState(){
 }
 function loadGame(){
  try{
-  const raw=localStorage.getItem(KEY)||localStorage.getItem("mha-road-v8-save")||localStorage.getItem("mha-road-v7-save")||localStorage.getItem("mha-road-v6-save")||localStorage.getItem(OLD_KEY);if(!raw){renderMenu();return;}
+  const raw=localStorage.getItem(KEY)||LEGACY_KEYS.map(k=>localStorage.getItem(k)).find(Boolean)||localStorage.getItem(OLD_KEY);if(!raw){renderMenu();return;}
   S=JSON.parse(raw);migrateState();combat=S.combat||null;delete S.combat;
   q("menu").classList.add("hidden");q("shop").classList.add("hidden");q("runEnd").classList.add("hidden");q("creation").classList.add("hidden");q("game").classList.remove("hidden");
   if(!combat&&!S.awaitingContinue){if(!restoreCurrentEvent())generateEvent()}
@@ -1049,7 +1078,7 @@ function exportSave(){
  if(!S){toast("Aucune partie");return}
  const copy=JSON.parse(JSON.stringify(S));copy.meta=getMeta();copy.exportedAt=new Date().toISOString();
  const blob=new Blob([JSON.stringify(copy,null,2)],{type:"application/json"});
- const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mha-road-v9.2-save.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mha-road-v10-save.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
 }
 function importSave(){
  const input=document.createElement("input");input.type="file";input.accept=".json,application/json";
@@ -1057,7 +1086,7 @@ function importSave(){
  r.onload=()=>{try{const x=JSON.parse(r.result);if(!x||!x.stats||!x.relations)throw new Error("format");S=x;migrateState();if(x.meta)localStorage.setItem(META_KEY,JSON.stringify(x.meta));combat=S.combat||null;delete S.combat;localStorage.setItem(KEY,JSON.stringify(S));location.reload()}catch(err){alert("Fichier de sauvegarde invalide.")}};
  r.readAsText(f)};input.click();
 }
-function newGame(){if(confirm("Abandonner la carrière actuelle ? Ta progression de boutique restera conservée.")){localStorage.removeItem(KEY);localStorage.removeItem("mha-road-v8-save");localStorage.removeItem("mha-road-v6-save");localStorage.removeItem(OLD_KEY);showMenu()}}
+function newGame(){if(confirm("Abandonner la carrière actuelle ? Ta progression de boutique restera conservée.")){localStorage.removeItem(KEY);localStorage.removeItem("mha-road-v8-save");localStorage.removeItem("mha-road-v9-save");localStorage.removeItem("mha-road-v9.2-save");localStorage.removeItem("mha-road-v6-save");localStorage.removeItem(OLD_KEY);showMenu()}}
 renderMenu();window.addEventListener("beforeunload",()=>{try{if(S&&!S.runEnded)saveGame()}catch(e){}});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js", {updateViaCache:"none"}).then(reg=>{reg.update().catch(()=>{});}).catch(()=>{}));}
 </script>
