@@ -48,6 +48,17 @@ button{min-height:42px;transition:transform .12s,filter .12s,background .12s}but
 
 /* V11 */
 .v11-world{border:1px solid #405f91;background:linear-gradient(145deg,#10243e,#0a1424);padding:12px;border-radius:16px;margin:10px 0}.v11-route{display:flex;flex-wrap:wrap;gap:5px}.v11-pill{padding:5px 8px;border-radius:999px;background:#172943;border:1px solid #35527b;font-size:11px}.v11-special{border-color:#7058a5;background:linear-gradient(145deg,#211a3c,#11172a)}
+
+/* V11.1 — modern mobile-first UI */
+:root{--bg:#05070d;--surface:#0c111c;--surface2:#111827;--stroke:rgba(255,255,255,.09);--txt:#f7f8fc;--muted:#8e99ad;--accent:#7c8cff;--accent2:#a46cff}
+html{background:#05070d}body{background:radial-gradient(700px 400px at 15% -5%,rgba(102,113,255,.18),transparent 60%),radial-gradient(600px 360px at 100% 18%,rgba(171,89,255,.12),transparent 60%),#05070d;letter-spacing:.01em}
+.wrap{max-width:960px;padding:18px 14px 110px}.card,.creation-panel{background:rgba(12,17,28,.82);border:1px solid var(--stroke);box-shadow:0 20px 70px rgba(0,0,0,.32);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border-radius:24px}.card{padding:18px;margin:14px 0}
+h1{font-size:clamp(30px,8vw,48px);line-height:1.02;letter-spacing:-.04em}h2{font-size:23px;letter-spacing:-.025em}
+button{border:1px solid var(--stroke);background:#151d2d;border-radius:14px;padding:12px 15px;font-size:14px;min-height:46px}button.primary,.creation-start{background:linear-gradient(135deg,#6f7cff,#9b63ff);border:0;box-shadow:0 14px 35px rgba(116,103,255,.25)}
+input,select{appearance:none;background:#080d16;border:1px solid var(--stroke);border-radius:14px;padding:14px 15px;min-height:50px;font-size:15px;outline:none;transition:.2s}input:focus,select:focus{border-color:#7c8cff;box-shadow:0 0 0 4px rgba(124,140,255,.12)}
+label{font-size:11px;text-transform:uppercase;letter-spacing:.09em;font-weight:800;color:#7f8ba2}.creation-shell{margin:18px auto;max-width:760px}.creation-hero{padding:34px 8px 24px}.eyebrow{font-size:11px;font-weight:900;letter-spacing:.18em;color:#8d98ff;margin-bottom:14px}.creation-hero p{color:var(--muted);font-size:16px;line-height:1.6;max-width:650px}.creation-badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:18px}.creation-badges span{font-size:11px;padding:7px 10px;border-radius:999px;background:rgba(124,140,255,.09);border:1px solid rgba(124,140,255,.18);color:#b8c0ff}.creation-panel{padding:20px}.creation-step{display:flex;align-items:center;gap:12px;margin:24px 0 12px}.creation-step>span{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:linear-gradient(135deg,#6677ff,#a66aff);font-size:11px;font-weight:950}.creation-step b{display:block;font-size:15px}.creation-step small{color:var(--muted);font-size:11px}.creation-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field-card{padding:13px;border:1px solid var(--stroke);background:rgba(255,255,255,.025);border-radius:17px}.field-card.field-wide{grid-column:1/-1}.origin-note,.creation-note{padding:13px 14px;border-radius:15px;margin-top:14px;font-size:12px;line-height:1.5}.origin-note{background:rgba(124,140,255,.08);border:1px solid rgba(124,140,255,.16);color:#c8ceff}.creation-note{color:var(--muted);border:1px solid var(--stroke)}.creation-start{width:100%;margin:18px 0 8px;display:flex;justify-content:space-between;align-items:center;font-size:15px}.creation-start span{font-size:22px}.creation-links{display:grid;grid-template-columns:1fr 1fr;gap:8px}.creation-links button{width:100%}
+.hero{padding:20px;border-radius:26px}.res{gap:7px}.res .box{border:1px solid var(--stroke);background:rgba(255,255,255,.025);border-radius:16px;padding:11px}.num{font-size:20px}.tabs{gap:7px;padding:8px 0;border-bottom:1px solid var(--stroke);background:rgba(5,7,13,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}.tabs button{border-color:transparent;background:transparent;color:#8f9bb0;border-radius:12px}.tabs button.active{color:#fff;background:rgba(124,140,255,.14);border-color:rgba(124,140,255,.2)}.choice{background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.025));border:1px solid var(--stroke);min-height:62px}.choice:hover{background:rgba(124,140,255,.12)}.notice{background:rgba(124,140,255,.07);border:1px solid rgba(124,140,255,.14);border-left:3px solid #7c8cff}.action-summary,.weekly-card,.season-v10,.v11-world{border-color:var(--stroke);background:rgba(255,255,255,.035)}.sticky-actions{background:rgba(5,7,13,.88);border-top:1px solid var(--stroke);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+@media(max-width:700px){.wrap{padding:10px 10px 108px}.creation-hero{padding:28px 4px 18px}.creation-grid{grid-template-columns:1fr}.field-card.field-wide{grid-column:auto}.creation-links{grid-template-columns:1fr}.card{border-radius:20px;padding:15px}.res{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -65,19 +76,29 @@ button{min-height:42px;transition:transform .12s,filter .12s,background .12s}but
 <div class="small muted" style="margin-top:12px">Les crédits de fin de partie restent acquis même après une mort. Achète des bonus avant de lancer une nouvelle carrière.</div>
 </section>
 <section id="shop" class="card hidden"><div class="top"><div><h2>🛒 Boutique de méta-progression</h2><div class="muted">Les achats deviennent des bonus de départ consommables lors de la prochaine carrière.</div></div><button onclick="showMenu()">← Menu</button></div><div class="metric" style="margin-bottom:10px">💎 Crédits disponibles <b id="shopCredits">0</b></div><div id="shopList" class="shop-grid"></div></section>
-<section id="creation" class="card">
-<h2>Créer ton héros</h2>
-<div class="grid">
-<div><label>Nom</label><input id="name" value="Ethan"></div>
-<div><label>Âge au début</label><input id="age" type="number" min="11" max="13" value="12"></div>
-<div><label>Parcours scolaire de départ</label><select id="school"><option value="Collège — classe de 4e">Collège — orientation future</option><option value="U.A. — Filière héroïque">U.A. — Filière héroïque</option><option value="U.A. — Filière générale">U.A. — Filière générale</option><option value="Shiketsu">Shiketsu</option><option value="Lycée normal">Lycée normal</option></select></div>
-<div><label>Origine familiale</label><select id="origin"><option>Famille ordinaire</option><option>Famille liée aux héros</option><option>Famille modeste</option><option>Famille influente</option><option>Passé difficile</option></select></div>
-<div><label>Personnalité</label><select id="personality"><option>Ambitieux</option><option>Protecteur</option><option>Prudent</option><option>Provocateur</option><option>Curieux</option><option>Altruiste</option></select></div>
-<div><label>Situation concernant l’Alter</label><select id="quirkSituation"><option value="unknown">Je ne connais pas encore mon véritable potentiel.</option><option value="weak">Mon Alter semble faible.</option><option value="none">Je suis sans Alter.</option></select></div>
+<section id="creation" class="creation-shell">
+<div class="creation-hero">
+<div class="eyebrow">MHA ROAD · V11</div>
+<h1>Construis ton histoire.</h1>
+<p>Tu ne choisis pas une destinée. Tu crées un parcours, et le monde réagit à tes décisions.</p>
+<div class="creation-badges"><span>⚡ Progression dynamique</span><span>🌍 Monde vivant</span><span>🎲 Événements procéduraux</span></div>
 </div>
-<div class="notice">Ton parcours scolaire influence directement les événements disponibles. Si tu commences au collège, une orientation future sera calculée ; si tu choisis U.A., Shiketsu ou un lycée normal, les événements sont immédiatement adaptés à cet établissement. Tu ne choisis pas directement ton Alter. Une route héroïque, civile, indépendante ou criminelle peut émerger de tes décisions.</div>
-<button class="primary" onclick="startGame()">Commencer mon histoire</button>
-<button onclick="importSave()">Importer une sauvegarde</button><button onclick="showShop()">🛒 Voir mes bonus de départ</button>
+<div class="creation-panel">
+<div class="creation-step"><span>01</span><div><b>Identité</b><small>Qui es-tu ?</small></div></div>
+<div class="creation-grid">
+<div class="field-card field-wide"><label>Nom du personnage</label><input id="name" value="Ethan" placeholder="Ton prénom ou nom"></div>
+<div class="field-card"><label>Parcours scolaire</label><select id="school"><option value="Collège — classe de 4e">Collège — orientation future</option><option value="U.A. — Filière héroïque">U.A. — Filière héroïque</option><option value="U.A. — Filière générale">U.A. — Filière générale</option><option value="Shiketsu">Shiketsu</option><option value="Lycée normal">Lycée normal</option></select></div>
+<div class="field-card"><label>Origine familiale</label><select id="origin"><option>Famille ordinaire</option><option>Famille liée aux héros</option><option>Famille modeste</option><option>Famille influente</option><option>Passé difficile</option></select></div>
+</div>
+<div class="creation-step"><span>02</span><div><b>Tempérament</b><small>Ce qui guide tes premières décisions</small></div></div>
+<div class="creation-grid"><div class="field-card field-wide"><label>Personnalité</label><select id="personality"><option>Ambitieux</option><option>Protecteur</option><option>Prudent</option><option>Provocateur</option><option>Curieux</option><option>Altruiste</option></select></div></div>
+<div class="creation-step"><span>03</span><div><b>Alter</b><small>Tu ne choisis pas ton pouvoir</small></div></div>
+<div class="creation-grid"><div class="field-card field-wide"><label>Situation actuelle</label><select id="quirkSituation"><option value="unknown">Je ne connais pas encore mon véritable potentiel.</option><option value="weak">Mon Alter semble faible.</option><option value="none">Je suis sans Alter.</option></select></div></div>
+<div class="origin-note">✦ <b>Ton âge de départ est déterminé automatiquement</b> selon ton parcours scolaire. Tu n’as plus besoin de le choisir.</div>
+<div class="creation-note">Ton parcours, tes relations, tes blessures, tes choix et tes réussites peuvent ouvrir des routes différentes. Même un personnage sans Alter peut devenir exceptionnel.</div>
+<button class="primary creation-start" onclick="startGame()">Commencer mon histoire <span>→</span></button>
+<div class="creation-links"><button onclick="importSave()">📥 Importer une sauvegarde</button><button onclick="showShop()">🛒 Bonus de départ</button></div>
+</div>
 </section>
 
 <main id="game" class="hidden">
@@ -219,7 +240,7 @@ function startGame(){
  const situation=val("quirkSituation");
  const base={force:25,vitesse:25,defense:25,endurance:25,intelligence:25,technique:25,controle:20,courage:25};
  S={
-  version:11,name:val("name").trim()||"Héros",age:+val("age"),school:val("school")||"Collège — classe de 4e",origin:val("origin"),personality:val("personality"),
+  version:11,name:val("name").trim()||"Héros",age:15,school:val("school")||"Collège — classe de 4e",origin:val("origin"),personality:val("personality"),
   quirkSituation:situation,quirk:null,quirkLevel:0,quirkXP:0,day:1,week:1,phase:"Matin",energy:100,hp:100,maxHp:100,money:120,rep:0,
   stats:base,relations:Object.fromEntries(REL_NAMES.map(n=>[n,0])),relationType:{},injuries:{},flags:{},history:[],seen:{},cooldowns:{},
   arc:"Début du collège",arcProgress:0,
@@ -229,11 +250,16 @@ function startGame(){
   villain:{active:false,alias:null,faction:null,notoriety:0,crimes:0,contacts:[],wanted:false,heat:0},
   factions:{hero:0,underground:0,law:0}, enemies:{}, equipment:[], mission:null, careerRank:0, publicRep:0, notoriety:0, moneyDebt:0, injuriesHistory:[],
   rng:(Date.now()%2147483647)||12345,
-  currentEventId:null,currentEventState:null,combat:null,runEnded:false,metaRevives:0,startingAge:+val("age"),lifeYear:1,periodType:"season",periodActions:0,
+  currentEventId:null,currentEventState:null,combat:null,runEnded:false,metaRevives:0,startingAge:15,lifeYear:1,periodType:"season",periodActions:0,
   hidden:{inheritScore:0,inheritCandidate:false,secretRoll:0},dayActions:0,weeklyActions:0,weekEventIds:[],recentEvents:[],lastActionSummary:null,awaitingContinue:false,achievements:[],season:0,seasonFinale:false,progressionReady:false,quirklessRoute:null
  };
  applyCreation();
- if(S.school!=="Collège — classe de 4e"){S.schoolStage="highschool";S.career.schoolStage="highschool";S.age=Math.max(S.age,15);S.arc=`Parcours ${S.school}`;}
+ // V11.1 : l’âge est déduit automatiquement du parcours scolaire.
+ if(S.school==="Collège — classe de 4e"){
+   S.age=13; S.startingAge=13; S.schoolStage="college"; S.career.schoolStage="college"; S.arc="Début du collège";
+ }else{
+   S.age=15; S.startingAge=15; S.schoolStage="highschool"; S.career.schoolStage="highschool"; S.arc=`Parcours ${S.school}`;
+ }
  S.progressionReady=false;
  applyMetaBoosts();
  S.progressionReady=true;
