@@ -1,1 +1,9 @@
-{"name":"MHA Road V16","short_name":"MHA Road","start_url":"./index.html","display":"standalone","background_color":"#05070d","theme_color":"#7c8cff","orientation":"portrait","icons":[]}
+{
+  "name": "MHA Road V16",
+  "short_name": "MHA Road",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#070b13",
+  "theme_color": "#080d18",
+  "lang": "fr"
+}
