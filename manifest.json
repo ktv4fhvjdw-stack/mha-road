@@ -1,9 +1,11 @@
 {
-  "name": "MHA Road V13",
+  "name": "MHA Road V13.4",
   "short_name": "MHA Road",
-  "start_url": "./index.html",
+  "start_url": "./index.html?v=13.4",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#0b0f17",
   "theme_color": "#0b0f17",
-  "orientation": "portrait"
+  "orientation": "portrait",
+  "icons": []
 }
