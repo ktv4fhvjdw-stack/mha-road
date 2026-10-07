@@ -2139,7 +2139,37 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 })();
 
 </script>
-</body>
+<script>/* V13.1 CHOICE SAFETY LAYER — prevents dead choice buttons / double taps */
+(function(){
+  const previousChoose = window.choose;
+  window.choose = function(index){
+    const ev = window.currentEvent || (typeof currentEvent !== 'undefined' ? currentEvent : null);
+    if(!ev || !ev.choices || !ev.choices[index]) return;
+    if(typeof S !== 'undefined' && (S.awaitingContinue || window.combat)) return;
+
+    const buttons = document.querySelectorAll('#eventChoices .choice');
+    buttons.forEach(b=>{ b.disabled=true; b.style.pointerEvents='none'; });
+
+    try {
+      return previousChoose(index);
+    } catch(err) {
+      console.error('MHA Road V13.1 choice error:', err);
+      try {
+        const label = ev.choices[index][0] || 'Action';
+        if(typeof log === 'function') log('⚠️ Une erreur est survenue pendant cette action. Le parcours continue sans bloquer la partie.');
+        if(typeof S !== 'undefined'){
+          S.currentEventId=null;
+          S.currentEventState=null;
+          S.awaitingContinue=true;
+          if(typeof setActionSummary==='function') setActionSummary(label,'L’action a rencontré un problème technique. Aucun choix supplémentaire n’est requis pour continuer.',{},'Protection anti-blocage');
+          if(typeof saveGame==='function') saveGame();
+          if(typeof render==='function') render();
+        }
+      } catch(recovery){ console.error('V13.1 recovery error:', recovery); }
+    }
+  };
+})();
+</script></body>
 </html>
 <!-- V13 DEPTH / CONSEQUENCE LAYER -->
 <script>
