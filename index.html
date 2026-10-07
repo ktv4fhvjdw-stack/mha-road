@@ -210,7 +210,7 @@ button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 })();
 </script>
 
-</head>
+<style id="v16-ui">.v16-card{margin:10px 0;padding:14px;border:1px solid rgba(255,255,255,.09);background:linear-gradient(145deg,rgba(18,26,41,.9),rgba(9,14,24,.92));border-radius:17px}.v16-card p{line-height:1.55;color:#d8deec}.v16-card small,.v16-muted{color:#8995aa;line-height:1.45}.v16-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px}.v16-slots{display:grid;grid-template-columns:1fr 1fr;gap:7px}.v16-slot{padding:10px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:#090f19}.v16-slot b,.v16-slot span{display:block}.v16-slot span{font-size:12px;color:#cdd5e5;margin:3px 0}.v16-slot button,.v16-item button{font-size:11px;padding:7px 9px;margin-top:5px}.v16-item{padding:11px;border:1px solid rgba(255,255,255,.08);border-radius:13px;margin:7px 0;background:rgba(255,255,255,.025)}.v16-item-top{display:flex;justify-content:space-between;gap:7px}.v16-item small{display:block;margin:5px 0}.v16-boost{font-size:11px;margin-top:6px;color:#b9c5ff}.v16-tech{padding:8px;border-radius:9px;margin-top:5px;background:rgba(255,255,255,.035);font-size:12px}.v16-tech.locked{color:#657086}.v16-rel{padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;margin:8px 0;background:rgba(255,255,255,.02)}.v16-rel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.v16-rel-grid span{padding:6px;background:#090f19;border-radius:8px}.v16-rel-grid small,.v16-rel-grid b{display:block}.v16-rel-grid small{font-size:9px;color:#78859b}.v16-rel-grid b{font-size:13px}.v16-factions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:9px}.v16-faction{display:flex;align-items:center;gap:6px;padding:9px;border-radius:10px;background:#090f19;font-size:11px}.v16-faction strong{margin-left:auto}.v16-arc{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06)}.v16-mini-bar{height:4px;background:#050912;border-radius:99px;overflow:hidden;margin:7px 0}.v16-mini-bar i{display:block;height:100%;background:linear-gradient(90deg,#7187ff,#aa6dff)}.v16-memory{padding:9px;margin:7px 0;border-left:2px solid #7187ff;background:#0b1321;border-radius:8px}.v16-memory b,.v16-memory small{display:block}.v16-memory small{margin-top:3px}.v16-world{display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:11px}.v16-world span{color:#8793a8;text-align:right}.v16-timeline{position:relative;padding:9px 0 9px 13px;border-left:2px solid #2e426a}.v16-timeline span{display:block;font-size:9px;color:#8d98ff;text-transform:uppercase}.v16-timeline b{display:block;font-size:12px;margin:2px 0}.v16-timeline small{display:block;color:#8b97aa;line-height:1.4}.v16-combat-info{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}.v16-combat-info span{font-size:10px;padding:7px 8px;border-radius:9px;background:#090f19;color:#aab5c8}.v16-objective{padding:10px;border-radius:10px;background:rgba(124,140,255,.08);border:1px solid rgba(124,140,255,.13);font-size:12px;margin-bottom:10px}.v16-combat h2{margin:2px 0}.v16-combat small{letter-spacing:.12em;color:#9eabff;font-weight:800}.v16-combat .combat-actions{grid-template-columns:1fr 1fr}@media(max-width:390px){.v16-slots,.v16-factions{grid-template-columns:1fr}.v16-rel-grid{grid-template-columns:repeat(2,1fr)}}</style></head>
 <body>
 <div class="wrap">
 <header class="top">
@@ -4963,6 +4963,265 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
     cleanRouteDetect();
     render();
   }
+
+/* ========================= MHA ROAD V16 =========================
+   Full systems refactor: dynamic seasons, authored scene engine,
+   persistent arcs/decisions, multidimensional relationships, living
+   world/factions, objective combat, discoverable Alter techniques,
+   strategic equipment, timeline and mobile UI.
+================================================================== */
+(function(){
+  const V16=16;
+  const V16_SEASONS=["Printemps","Été","Automne","Hiver"];
+  const V16_FACTIONS={
+    ua:{name:"U.A.",icon:"🎓"}, heroes:{name:"Héros professionnels",icon:"🦸"}, police:{name:"Police",icon:"🚓"}, civilians:{name:"Civils",icon:"🏙️"}, support:{name:"Support",icon:"🛠️"}, underground:{name:"Milieu clandestin",icon:"🌑"}, villains:{name:"Monde criminel",icon:"☠️"}
+  };
+  const V16_REL_FIELDS=["trust","respect","affection","rivalry","fear","debt"];
+  const V16_BASE_NPCS={Izuku:{goal:"progresser sans laisser personne derrière",style:"analyse"},Katsuki:{goal:"devenir le meilleur",style:"pression"},Ochaco:{goal:"devenir une héroïne utile",style:"sauvetage"},Shoto:{goal:"construire sa propre voie",style:"contrôle"},Tenya:{goal:"mériter son nom",style:"discipline"},Momo:{goal:"maîtriser toutes ses options",style:"préparation"},Eijiro:{goal:"devenir fiable sous pression",style:"courage"},Tsuyu:{goal:"rester lucide",style:"adaptation"},Aizawa:{goal:"former des élèves capables de décider",style:"évaluation"},Hawks:{goal:"comprendre les menaces avant qu'elles n'explosent",style:"renseignement"},Mirko:{goal:"agir avant que le danger grandisse",style:"action"}};
+  const V16_TECHNIQUES={
+    kinetic:["Impact accumulé","Décharge directionnelle","Contre-choc"],gravity:["Ancrage","Zone légère","Compression gravitationnelle"],shadow:["Voile d'ombre","Passage sombre","Point aveugle"],forge:["Renforcement instantané","Structure de secours","Forme adaptative"],overdrive:["Poussée courte","Surcharge contrôlée","Rythme maximal"],pulse:["Impulsion ciblée","Résonance défensive","Onde concentrée"]
+  };
+  const V16_EQUIPMENT={
+    visor:{name:"Visière tactique",slot:"Tête",cost:220,craft:110,desc:"Lecture améliorée des mouvements et des situations.",boosts:{intelligence:3,controle:2},effect:"analysis+",trade:"-2 énergie lors d'une analyse"},
+    reinforcedSuit:{name:"Tenue renforcée",slot:"Torse",cost:360,craft:180,desc:"Protection souple conçue pour les interventions.",boosts:{defense:5,endurance:2},effect:"damage-",trade:"-1 vitesse"},
+    impactBracers:{name:"Brassards d'impact",slot:"Bras",cost:420,craft:210,desc:"Stabilisent les frappes et absorbent une partie du recul.",boosts:{force:4,technique:3},effect:"attack+",trade:"+3 énergie consommée sur les techniques"},
+    mobilityBoots:{name:"Bottes de mobilité",slot:"Jambes",cost:330,craft:165,desc:"Améliorent les appuis et changements de direction.",boosts:{vitesse:5,controle:1},effect:"escape+",trade:"-2 défense"},
+    rescueKit:{name:"Kit de sauvetage",slot:"Support",cost:280,craft:140,desc:"Outils pour protéger, déplacer et secourir.",boosts:{defense:2,courage:4},effect:"protect+",trade:"-1 puissance offensive"},
+    supportCore:{name:"Module d'assistance",slot:"Support",cost:520,craft:260,desc:"Optimise l'usage du matériel et des techniques.",boosts:{technique:4,intelligence:4},effect:"technique+",trade:"coûte 2 énergie à chaque action technique"}
+  };
+  const V16_ENEMIES=[
+    {id:"thug",name:"Délinquant masqué",hp:44,power:14,alter:null,objective:"arrest"},
+    {id:"equipped",name:"Criminel équipé",hp:58,power:17,alter:{name:"Rivet",type:"projection",clue:"des projectiles métalliques semblent apparaître depuis ses avant-bras"},objective:"arrest"},
+    {id:"specialist",name:"Vilain spécialisé",hp:74,power:20,alter:{name:"inconnu",type:"unknown",clue:"son Alter semble modifier son environnement sans contact évident"},objective:"analyze"},
+    {id:"rescue",name:"Adversaire d'exercice",hp:52,power:13,alter:{name:"inconnu",type:"unknown",clue:"les instructeurs semblent connaître ses capacités"},objective:"protect"},
+    {id:"hunter",name:"Vilain chasseur",hp:88,power:23,alter:{name:"inconnu",type:"unknown",clue:"il semble anticiper tes déplacements"},objective:"survive"}
+  ];
+  const V16_SCENES=[
+    {id:"v16-morning",type:"Scène",title:"Avant que les cours commencent",domain:"school",text:()=>`Le bâtiment est encore calme. Les premiers élèves arrivent, certains révisent, d'autres parlent déjà du prochain exercice. Tu as quelques minutes avant le début du cours.`,choices:[
+      ["Rejoindre un camarade",()=>{const n=pick(["Izuku","Ochaco","Eijiro"]);v16Rel(n,{trust:2,affection:1});return `Tu rejoins ${n}. La conversation est banale, mais tu apprends à mieux comprendre ce qui le motive.`}],
+      ["Réviser seul",()=>{modStat("intelligence",1);v16Decision("routine_study","Tu as choisi la régularité plutôt que la facilité.");return "Tu profites du calme pour consolider un point que tu maîtrisais mal."}],
+      ["Observer les autres",()=>{modStat("controle",1);return "Tu observes les habitudes des autres. Certaines façons de travailler pourraient t'être utiles."}]
+    ]},
+    {id:"v16-rival",type:"Relation",title:"Une remarque de Katsuki",domain:"relations",npc:"Katsuki",text:()=>`À la sortie du terrain, Katsuki ralentit enfin. Il regarde ton équipement, puis ta posture.\n\n« Tu progresses. Mais tu réfléchis encore trop quand il faut agir. »`,choices:[
+      ["Lui demander une critique précise",()=>{v16Rel("Katsuki",{respect:3,trust:1,rivalry:2});modStat("technique",1);v16Decision("katsuki_critique","Tu as accepté une critique de Katsuki au lieu de répondre à la provocation.");return "Tu lui demandes ce qu'il aurait fait à ta place. Il répond sérieusement, ce qui est presque plus surprenant que la critique."}],
+      ["Le provoquer",()=>{v16Rel("Katsuki",{rivalry:5,respect:1});return "Tu lui réponds sur le même ton. La rivalité devient plus franche."}],
+      ["Passer ton chemin",()=>{v16Rel("Katsuki",{respect:1,rivalry:1});modStat("controle",1);return "Tu ne lui donnes pas la réaction qu'il attendait. Pour une fois, tu imposes ton propre rythme."}]
+    ]},
+    {id:"v16-rescue",type:"Sauvetage",title:"Une personne coincée",domain:"rescue",text:()=>`Un bruit métallique retentit derrière une devanture. Les passants s'éloignent. Une personne est coincée à l'intérieur et la structure commence à bouger. Les secours sont appelés, mais ils ne sont pas encore là.`,choices:[
+      ["Entrer et sortir la personne",()=>{modStat("courage",2);v16Faction("civilians",3);v16Memory("premier_sauvetage","Premier sauvetage improvisé","Tu as choisi d'aider avant d'avoir toutes les garanties.");return "Tu entres, sécurises un passage et aides la personne à sortir avant l'arrivée des secours."}],
+      ["Sécuriser la zone",()=>{modStat("defense",1);modStat("intelligence",1);v16Faction("police",2);return "Tu éloignes les passants et empêches une seconde victime de se retrouver dans la zone dangereuse."}],
+      ["Attendre les professionnels",()=>{modStat("intelligence",1);v16Faction("police",1);return "Tu préviens les secours et évites de créer une victime supplémentaire. Tu restes toutefois prêt à intervenir si la situation change."}]
+    ]},
+    {id:"v16-support",type:"Support",title:"Une pièce expérimentale",domain:"support",text:()=>`Dans l'atelier, une pièce expérimentale est posée sur une table. Elle n'est pas encore homologuée. Son principe pourrait pourtant résoudre une faiblesse de ton équipement actuel.`,choices:[
+      ["Étudier le mécanisme",()=>{modStat("intelligence",2);v16Decision("support_analysis","Tu as préféré comprendre le matériel avant de l'utiliser.");return "Tu démontes le problème mentalement avant même de toucher à la pièce."}],
+      ["Proposer une modification",()=>{modStat("technique",2);v16Faction("support",2);return "Tu proposes une modification. Elle n'est pas parfaite, mais elle pourrait devenir utile."}],
+      ["Refuser de l'utiliser",()=>{modStat("defense",1);return "Tu refuses de dépendre d'un matériel dont tu ne connais pas les limites."}]
+    ]},
+    {id:"v16-night",type:"Vie",title:"Une ville différente la nuit",domain:"life",text:()=>`La ville semble différente après la tombée du jour. Pour quelques minutes, tu peux marcher sans objectif précis.`,choices:[
+      ["Rentrer tôt",()=>{S.energy=clamp(S.energy+5);return "Tu rentres tôt. Tu commences à comprendre que récupérer fait partie de la progression."}],
+      ["Continuer à marcher",()=>{modStat("intelligence",1);return "Tu prolonges la promenade. Certaines idées deviennent plus claires lorsque tu cesses de chercher une réponse."}],
+      ["Appeler quelqu'un",()=>{const n=pick(["Izuku","Ochaco","Shoto","Eijiro"]);v16Rel(n,{trust:2,affection:2});return `Tu appelles ${n}. La conversation ne concerne même pas l'entraînement, et c'est peut-être ce qui la rend importante.`}]
+    ]},
+    {id:"v16-class",type:"École",title:"Une question sans bonne réponse",domain:"school",text:()=>`Le professeur pose une question sur une intervention récente. Plusieurs élèves connaissent la réponse théorique, mais le vrai problème est ailleurs : deux priorités étaient impossibles à concilier.`,choices:[
+      ["Parler du dilemme",()=>{modStat("intelligence",2);v16Faction("ua",2);return "Tu expliques pourquoi aucune décision n'était parfaite. La discussion devient plus intéressante que la réponse attendue."}],
+      ["Donner la réponse du cours",()=>{S.schoolResults.academic+=2;return "Tu donnes la réponse attendue. Elle est correcte, même si elle ne raconte pas toute l'histoire."}],
+      ["Demander l'avis du professeur",()=>{v16Rel("Aizawa",{respect:2,trust:1});return "Tu demandes ce qu'il aurait fait. La réponse ne te donne pas une solution : elle te donne un nouveau problème à résoudre."}]
+    ]},
+    {id:"v16-secret",type:"Décision",title:"Une information qui ne t'était pas destinée",domain:"secret",text:()=>`Tu entends une conversation à moitié couverte par le bruit du couloir. Un élève parle d'un incident qui n'apparaît pas dans les rapports officiels. Tu pourrais écouter davantage.`,choices:[
+      ["Écouter",()=>{modStat("intelligence",1);v16Decision("secret_heard","Tu as entendu parler d'un incident qui ne figure pas dans les rapports officiels.");S.v16.secrets.heard++;return "Tu retiens les détails sans intervenir. Cette information pourrait avoir de l'importance plus tard."}],
+      ["Prévenir un professeur",()=>{v16Rel("Aizawa",{trust:3,respect:1});v16Faction("ua",2);v16Decision("secret_reported","Tu as signalé une information inquiétante à un professeur.");return "Tu transmets ce que tu sais à un adulte responsable. Tu ignores encore si tu as fait le bon choix."}],
+      ["Ignorer",()=>{modStat("controle",1);return "Tu décides de ne pas te mêler d'une histoire dont tu ne connais pas le contexte."}]
+    ]},
+    {id:"v16-reputation",type:"Réputation",title:"Ton nom circule",domain:"reputation",text:()=>`Tu reconnais ton propre nom dans une conversation que tu n'étais pas censé entendre. Rien de spectaculaire : simplement quelqu'un qui raconte une intervention où tu étais présent.`,choices:[
+      ["Écouter jusqu'au bout",()=>{modStat("intelligence",1);return "Tu écoutes. Tu découvres que les autres ont retenu des détails auxquels tu n'avais pas pensé."}],
+      ["Te présenter",()=>{S.publicRep+=2;v16Faction("civilians",2);return "Tu te présentes calmement. Ton visage est désormais associé à ton nom."}],
+      ["Partir discrètement",()=>{modStat("controle",1);return "Tu préfères laisser tes actions parler pour toi."}]
+    ]}
+  ];
+
+  function v16Init(){
+    if(!S)return;
+    S.version=V16;
+    S.v16=S.v16||{};
+    const v=S.v16;
+    v.version=V16;
+    v.seasonActions=Number(v.seasonActions||0);
+    v.seasonPlan=Number(v.seasonPlan||0);
+    v.seasonStarted=!!v.seasonStarted;
+    v.arcPressure=Number(v.arcPressure||0);
+    v.decisions=v.decisions||{};
+    v.decisionHistory=Array.isArray(v.decisionHistory)?v.decisionHistory:[];
+    v.timeline=Array.isArray(v.timeline)?v.timeline:[];
+    v.memories=Array.isArray(v.memories)?v.memories:[];
+    v.techniques=v.techniques&&typeof v.techniques==='object'?v.techniques:{};
+    v.style={...(v.style||{})};
+    v.factions=v.factions&&typeof v.factions==='object'?v.factions:{};
+    Object.keys(V16_FACTIONS).forEach(k=>{v.factions[k]=Number(v.factions[k]||0)});
+    v.arcs=v.arcs&&typeof v.arcs==='object'?v.arcs:{};
+    v.secrets=v.secrets||{heard:0,knownAlterClues:0};
+    v.combats=Array.isArray(v.combats)?v.combats:[];
+    v.worldNews=Array.isArray(v.worldNews)?v.worldNews:[];
+    v.npc={...(v.npc||{})};
+    Object.entries(V16_BASE_NPCS).forEach(([n,d])=>{v.npc[n]={...(v.npc[n]||{}),goal:v.npc[n]?.goal||d.goal,style:v.npc[n]?.style||d.style,level:Number(v.npc[n]?.level||1),influence:Number(v.npc[n]?.influence||0),status:v.npc[n]?.status||"progresse de son côté"}});
+    S.relationData=S.relationData||{};
+    REL_NAMES.forEach(n=>{S.relationData[n]={trust:0,respect:0,affection:0,rivalry:0,fear:0,debt:0,...(S.relationData[n]||{})}});
+    S.factionRep=S.factionRep&&typeof S.factionRep==='object'?S.factionRep:{};
+    Object.keys(V16_FACTIONS).forEach(k=>{S.factionRep[k]=Number(S.factionRep[k]??S.factions?.[k]??0)});
+    S.timeline=v.timeline;
+    S.memories=v.memories;
+    S.v16.equipment=Array.isArray(S.v16.equipment)?S.v16.equipment:[];
+    // migrate V15.5 inventory
+    if(S.v155?.equipmentInventory) S.v155.equipmentInventory.forEach(x=>{if(!S.v16.equipment.some(e=>e.id===x.id))S.v16.equipment.push({...x})});
+    S.v16.equipped={...(S.v16.equipped||S.v155?.equipped||{})};
+    v16NormalizeEquipment();
+  }
+  function v16SeasonLabel(){return V16_SEASONS[S.season||0]||"Saison"}
+  function v16AddTimeline(kind,title,text,meta={}){v16Init();const item={id:`t${Date.now()}-${Math.floor(Math.random()*9999)}`,day:S.day,year:S.lifeYear,season:v16SeasonLabel(),kind,title,text,...meta};S.v16.timeline.unshift(item);S.v16.timeline=S.v16.timeline.slice(0,80);return item}
+  function v16Memory(id,title,text,meta={}){v16Init();if(S.v16.memories.some(x=>x.id===id))return;S.v16.memories.unshift({id,title,text,day:S.day,season:v16SeasonLabel(),...meta});S.v16.memories=S.v16.memories.slice(0,40);S.memories=S.v16.memories;v16AddTimeline("Souvenir",title,text,meta)}
+  function v16Decision(id,text){v16Init();if(!S.v16.decisions[id]){S.v16.decisions[id]={id,text,day:S.day,season:v16SeasonLabel()};S.v16.decisionHistory.unshift(id);v16Memory(`decision:${id}`,"Décision importante",text,{decisionId:id})}}
+  function v16Rel(n,delta){v16Init();if(!S.relations[n])S.relations[n]=0;const d=S.relationData[n];Object.entries(delta||{}).forEach(([k,val])=>{if(V16_REL_FIELDS.includes(k))d[k]=clamp((d[k]||0)+Number(val),-100,100)});const net=(Number(delta.trust||0)+Number(delta.respect||0)+Number(delta.affection||0)-Number(delta.rivalry||0)*.35-Number(delta.fear||0)*.2+Number(delta.debt||0)*.15);modRel(n,Math.round(net));updateRelationshipTypes();}
+  function v16Faction(k,n){v16Init();if(!(k in V16_FACTIONS))return;S.factionRep[k]=clamp((S.factionRep[k]||0)+n,-100,100);if(S.factions)S.factions[k]=S.factionRep[k];}
+  function v16Style(k,n=1){v16Init();S.v16.style[k]=(S.v16.style[k]||0)+n}
+  function v16AnalyzeStyle(){v16Init();const s=S.v16.style;const pairs=[['protecteur',s.protect||0],['tacticien',(s.analyze||0)+(s.intelligence||0)*.25],['mobile',(s.mobility||0)+(s.escape||0)],['combattant',(s.attack||0)+(s.technique||0)],['secouriste',(s.rescue||0)+(s.protect||0)],['controle',(s.control||0)+(s.guard||0)]];pairs.sort((a,b)=>b[1]-a[1]);return pairs[0]?.[0]||"adaptatif"}
+  function v16PlanSeason(){v16Init();let min=5,max=10;if(S.v16.arcPressure>=2||S.arcProgress>=3){max=12}const target=Math.min(max,Math.max(min,6+Math.floor(rnd(4))));S.v16.seasonPlan=target;S.v16.seasonActions=0;S.v16.seasonStarted=true;return target}
+  function v16NeedFinale(){return S.v16.seasonActions>=S.v16.seasonPlan}
+  function v16Major(){return (S.v16.arcPressure||0)>=2 || ["Finale","Exam","Festival","Mission majeure"].some(x=>String(S.arc||"").includes(x))}
+
+  function v16ArcInit(){
+    const arcs=S.v16.arcs;
+    const defs={rivalry:{name:"Rivalité avec Katsuki",status:"active",progress:0,cap:6},friendship:{name:"Liens avec la classe",status:"active",progress:0,cap:6},alter:{name:"Comprendre son Alter",status:"active",progress:0,cap:8},hero:{name:"Construire sa voie",status:"active",progress:0,cap:8}};
+    Object.entries(defs).forEach(([id,d])=>{arcs[id]={...d,...(arcs[id]||{})}});
+  }
+  function v16ArcTick(){v16ArcInit();const a=S.v16.arcs;if((S.relationData.Katsuki?.rivalry||0)>8)a.rivalry.progress=Math.min(a.rivalry.cap,a.rivalry.progress+1);if((S.relationData.Izuku?.trust||0)+(S.relationData.Ochaco?.trust||0)>6)a.friendship.progress=Math.min(a.friendship.cap,a.friendship.progress+1);if(S.quirk&&(S.quirkXP||0)>10)a.alter.progress=Math.min(a.alter.cap,a.alter.progress+1);if((S.factionRep.heroes||0)+(S.factionRep.ua||0)>8)a.hero.progress=Math.min(a.hero.cap,a.hero.progress+1);Object.values(a).forEach(x=>{if(x.progress>=x.cap)x.status="completed"})}
+  function v16WorldTick(){v16Init();v16ArcTick();S.v16.worldNews=[];Object.entries(S.v16.npc).forEach(([n,x])=>{let gain=1+Math.floor(rnd(3));x.level+=gain*.08;x.influence+=gain*.25;const d=V16_BASE_NPCS[n];x.status= x.level>5?`son niveau augmente rapidement autour de sa spécialité (${d.style})`:x.status;if(chance(.16)){const news=`${n} a progressé pendant que tu poursuivais ton propre parcours.`;S.v16.worldNews.push(news);S.v16.worldNews.unshift(news)}});S.v16.worldNews=S.v16.worldNews.slice(0,4);S.v16.worldNews.forEach(n=>v16AddTimeline("Monde", "Le monde continue sans toi",n));S.v16.worldNews=S.v16.worldNews.slice(0,4);S.v16.arcPressure=0;}
+
+  function v16NormalizeEquipment(){v16Init();const valid={};["Tête","Torse","Bras","Jambes","Support"].forEach(slot=>{const id=S.v16.equipped[slot];if(id&&S.v16.equipment.some(x=>x.id===id))valid[slot]=id});S.v16.equipped=valid}
+  function v16Gear(){v16Init();return Object.values(S.v16.equipped).map(id=>S.v16.equipment.find(x=>x.id===id)).filter(Boolean)}
+  function v16GearBonus(k){return v16Gear().reduce((n,x)=>n+Number(x.boosts?.[k]||0),0)}
+  function v16Own(type){return S.v16.equipment.some(x=>x.type===type)}
+  function v16Buy(type,craft=false){v16Init();const d=V16_EQUIPMENT[type];if(!d)return;if(v16Own(type))return toast("Tu possèdes déjà cet équipement.");const cost=craft?d.craft:d.cost;if((S.money||0)<cost)return toast(`Il te faut ${cost} ¥.`);S.money-=cost;const item={id:`v16-${type}-${Date.now()}-${Math.floor(rnd(99999))}`,type,name:d.name,slot:d.slot,desc:d.desc,boosts:{...d.boosts},effect:d.effect,trade:d.trade,source:craft?"craft":"shop"};S.v16.equipment.push(item);v16NormalizeEquipment();saveGame();render();toast(`${d.name} ${craft?"fabriqué":"acheté"}.`)}
+  function v16Equip(id){v16Init();const item=S.v16.equipment.find(x=>x.id===id);if(!item)return;S.v16.equipped[item.slot]=item.id;v16NormalizeEquipment();v16Memory(`gear:${item.type}`,"Un équipement adopté",`${item.name} devient une partie de ta façon de combattre.`);saveGame();render();toast(`${item.name} équipé.`)}
+  function v16Unequip(slot){v16Init();delete S.v16.equipped[slot];saveGame();render()}
+  function v16GearHtml(){v16Init();const gear=v16Gear();const slots=["Tête","Torse","Bras","Jambes","Support"].map(slot=>{const x=gear.find(e=>e.slot===slot);return `<div class="v16-slot"><b>${slot}</b><span>${x?x.name:"Libre"}</span>${x?`<button onclick="window.v16Unequip('${slot}')">Retirer</button>`:""}</div>`}).join("");const inv=S.v16.equipment.map(x=>`<div class="v16-item"><div class="v16-item-top"><b>${x.name}</b><span class="tag">${x.slot}</span></div><small>${x.desc}</small><div class="v16-boost">${Object.entries(x.boosts||{}).map(([k,n])=>`+${n} ${STAT_LABEL[k]||k}`).join(" · ")}</div><div class="v16-muted">Effet : ${x.effect||"aucun"} · Compromis : ${x.trade||"aucun"}</div><button onclick="window.v16Equip('${x.id}')">${gear.some(g=>g.id===x.id)?"Équipé":"Équiper"}</button></div>`).join("")||`<div class="v12-empty">Aucun équipement.</div>`;const shop=Object.entries(V16_EQUIPMENT).map(([id,d])=>`<div class="v16-item"><div class="v16-item-top"><b>${d.name}</b><span class="tag">${d.slot}</span></div><small>${d.desc}</small><div class="v16-boost">${Object.entries(d.boosts).map(([k,n])=>`+${n} ${STAT_LABEL[k]||k}`).join(" · ")}</div><div class="v16-muted">${d.effect} · ${d.trade}</div><button onclick="window.v16Buy('${id}',false)">Acheter ${d.cost} ¥</button><button onclick="window.v16Buy('${id}',true)">Fabriquer ${d.craft} ¥</button></div>`).join("");return `<div class="v16-card"><div class="v16-head"><b>Emplacements</b><span class="tag">${gear.length}/5</span></div><div class="v16-slots">${slots}</div></div><div class="v16-card"><div class="v16-head"><b>Inventaire</b><span class="tag">${S.v16.equipment.length}</span></div>${inv}</div><div class="v16-card"><div class="v16-head"><b>Atelier</b><span class="tag">${S.money} ¥</span></div>${shop}</div>`}
+
+  function v16AlterHtml(){v16Init();if(!S.quirk&&!S.flags.noQuirk)return `<div class="v16-card"><b>🧬 Alter inconnu</b><p>Ton Alter n'est pas encore identifié. Ses premières manifestations dépendront de tes choix et de tes situations de stress.</p><small>Les applications seront découvertes progressivement.</small></div>`;if(S.flags.noQuirk)return `<div class="v16-card"><b>🧬 Voie sans Alter</b><p>Tu construis ton identité autour de la technique, de l'analyse, du physique et du matériel.</p><b>Style actuel :</b> ${v16AnalyzeStyle()}</div>`;const qk=S.quirk;const id=qk.id;const known=Array.isArray(S.v16.techniques[id])?S.v16.techniques[id]:[];const pool=V16_TECHNIQUES[id]||[];return `<div class="v16-card"><div class="v16-head"><b>⚡ ${qk.name}</b><span class="tag">${qk.rarity||"Potentiel"} · Niv. ${S.quirkLevel||0}</span></div><p>${qk.desc}</p><div class="v16-muted"><b>Limite :</b> ${qk.weak||"à découvrir"}</div><div class="v16-techs"><b>Applications découvertes</b>${pool.map((t,i)=>`<div class="v16-tech ${known.includes(t)?"known":"locked"}">${known.includes(t)?"✓":"?"} ${known.includes(t)?t:"Application inconnue"}</div>`).join("")}</div><small>XP ${S.quirkXP||0} · Les techniques se débloquent selon ta façon de jouer.</small></div><div class="v16-card"><b>Style de maîtrise</b><p>${v16AnalyzeStyle()}</p><small>Ton Alter n'a pas une seule spécialisation imposée : tes combats et décisions déterminent les applications que tu développes.</small></div>`}
+  function v16DiscoverTechnique(){if(!S.quirk)return;v16Init();const id=S.quirk.id,pool=V16_TECHNIQUES[id]||[];S.v16.techniques[id]=S.v16.techniques[id]||[];const known=S.v16.techniques[id];if(known.length<pool.length&&S.quirkXP>=18+known.length*25){const t=pool[known.length];known.push(t);v16Memory(`tech:${id}:${t}`,"Nouvelle application de l'Alter",`Tu découvres une nouvelle manière d'utiliser ${S.quirk.name} : ${t}.`);log(`Nouvelle application découverte : ${t}.`)}}
+
+  function v16RelHtml(){v16Init();return Object.entries(S.relations).sort((a,b)=>b[1]-a[1]).map(([n,v])=>{const d=S.relationData[n]||{};const type=S.relationType[n]||"Connaissance";return `<div class="v16-rel"><div class="v16-head"><b>${n}</b><span class="tag">${type}</span></div><div class="v16-rel-grid">${V16_REL_FIELDS.map(k=>`<span><small>${({trust:"Confiance",respect:"Respect",affection:"Affection",rivalry:"Rivalité",fear:"Crainte",debt:"Dette"})[k]}</small><b>${Math.round(d[k]||0)}</b></span>`).join("")}</div></div>`}).join("")}
+  function v16FactionHtml(){v16Init();return Object.entries(V16_FACTIONS).map(([k,d])=>`<div class="v16-faction"><span>${d.icon}</span><b>${d.name}</b><strong>${Math.round(S.factionRep[k]||0)}</strong></div>`).join("")}
+  function v16ArcHtml(){v16Init();v16ArcInit();return Object.values(S.v16.arcs).map(a=>`<div class="v16-arc"><div class="v16-head"><b>${a.name}</b><span class="tag">${a.status}</span></div><div class="v16-mini-bar"><i style="width:${Math.min(100,(a.progress/a.cap)*100)}%"></i></div><small>${a.progress}/${a.cap}</small></div>`).join("")}
+  function v16TimelineHtml(){v16Init();return S.v16.timeline.slice(0,18).map(x=>`<div class="v16-timeline"><span>${x.season}</span><b>${x.title}</b><small>${x.text}</small></div>`).join("")||`<div class="v12-empty">Ton histoire n'a pas encore laissé de trace.</div>`}
+
+  function v16SceneEvent(){v16Init();const used=new Set((S.recentEvents||[]).slice(-20));const eligible=V16_SCENES.filter(x=>!used.has(x.id));if(!eligible.length)return null;const weights=eligible.map(x=>({x,w:(x.domain==="combat"?1:3)+(x.domain==="relations"?2:0)}));let total=weights.reduce((a,b)=>a+b.w,0),r=rnd(total);for(const z of weights){r-=z.w;if(r<=0)return {...z.x,weight:z.w,source:"v16-scene"}}return eligible[0]}
+  function v16CombatEvent(){v16Init();const e=pick(V16_ENEMIES);const scale=1+Math.min(1.1,(S.age-13)*.035+(S.careerRank||0)*.08+(S.v16.arcPressure||0)*.12);return {id:`v16-combat-${S.v16.combats.length+1}-${Date.now()}`,type:"Combat",title:`⚔️ ${e.name}`,source:"v16-combat",enemyDef:e,choices:[
+    ["Intervenir immédiatement",()=>{v16Style("attack");startCombat(e,Math.round(e.hp*scale),"defeat");return `Tu interviens immédiatement face à ${e.name}.`}],
+    ["Analyser avant d'agir",()=>{v16Style("analyze");startCombat(e,Math.round(e.hp*scale*.94),"analyze");return `Tu observes d'abord ${e.name}. Tu cherches à comprendre son Alter avant de t'engager.`}],
+    ["Protéger les civils",()=>{v16Style("protect");startCombat(e,Math.round(e.hp*scale*.9),"protect");return `Tu te places entre ${e.name} et les civils. Le combat commence avec un objectif de protection.`}]
+  ],text:()=>e.alter?.clue?`La situation dégénère. ${e.name} te fait face. ${e.alter.clue}. Tu ne sais pas encore exactement ce que son Alter peut faire.`:`La situation dégénère. ${e.name} te fait face. Tu dois intervenir avant que quelqu'un ne soit blessé.`}}
+  function v16GenerateEvent(isFinale=false){v16Init();if(isFinale){currentEvent={id:`v16-finale-${S.lifeYear}-${S.season}`,type:"Finale",title:`⭐ Fin de ${v16SeasonLabel()}`,source:"v16-finale",text:()=>`Les dernières semaines de la saison ont laissé des traces. Tes relations, ton style et les événements que tu as provoqués commencent à produire des conséquences. Avant de passer à la saison suivante, tu dois décider ce que tu veux retenir de cette période.`,choices:[
+      ["Consolider ce que j'ai appris",()=>{modStat("controle",1);v16Memory(`season:${S.lifeYear}:${S.season}`,"Une saison décisive",`Tu as terminé ${v16SeasonLabel()} avec une orientation de style ${v16AnalyzeStyle()}.`);return "Tu prends le temps de comprendre ce que cette saison a réellement changé en toi."}],
+      ["Chercher un nouveau défi",()=>{S.v16.arcPressure=Math.min(4,S.v16.arcPressure+1);modStat("courage",1);v16Memory(`season-risk:${S.lifeYear}:${S.season}`,"Une saison ne suffit plus","Tu as choisi de chercher volontairement une situation plus difficile.");return "Tu ne veux pas seulement reproduire ce qui fonctionne. Tu cherches déjà le prochain obstacle."}],
+      ["Protéger mes liens",()=>{const n=Object.entries(S.relations).sort((a,b)=>b[1]-a[1])[0]?.[0];if(n)v16Rel(n,{trust:2,affection:2});return `Tu décides que la progression n'a de sens que si les personnes importantes pour toi avancent aussi.`}]
+    ]};S.currentEventId=currentEvent.id;S.currentEventState={day:S.day,phase:S.phase};return;}
+    if(S.age<13){generateEvent();return}
+    const combatChance=v16Major()||S.mission?.active?.true?.length?0.48:0.30;
+    let ev=null;
+    if(chance(.18))ev=v16SceneEvent();
+    if(!ev&&chance(combatChance))ev=v16CombatEvent();
+    if(!ev){
+      // Reuse the authored base events only when V16 has no dedicated scene.
+      const before=currentEvent;V155_BASE_GENERATE_FOR_V16(false);ev=currentEvent;if(!ev||ev===before)ev=v16SceneEvent();
+    }
+    currentEvent=ev;S.currentEventId=ev?.id||null;S.currentEventState={day:S.day,phase:S.phase};if(ev){S.recentEvents=S.recentEvents||[];S.recentEvents.push(ev.id);S.recentEvents=S.recentEvents.slice(-30)}
+  }
+  const V155_BASE_GENERATE_FOR_V16=generateEvent;
+
+  function v16StartSeason(){v16Init();v16ArcInit();if(!S.v16.seasonPlan)v16PlanSeason();S.seasonFinale=false;S.phase=v16SeasonLabel();}
+  function v16EndSeason(){v16Init();v16WorldTick();const ended=v16SeasonLabel();v16AddTimeline("Saison","Fin de saison",`La saison ${ended} s'achève après ${S.v16.seasonActions} actions.`);S.day=(S.day||1)+91;S.season=(S.season+1)%4;if(S.season===0){S.lifeYear=(S.lifeYear||1)+1;S.age=(S.startingAge||15)-1+S.lifeYear;S.money+=Math.max(160,Math.round(220+(S.careerRank||0)*6));log(`Une nouvelle année commence. Tu as maintenant ${S.age} ans.`)}S.v16.seasonPlan=0;S.v16.seasonActions=0;S.v16.seasonStarted=false;S.seasonFinale=false;S.phase=v16SeasonLabel();v16PlanSeason();v16GenerateEvent(false);}
+
+  function v16Choose(index){
+    if(!S||!currentEvent||combat||S.awaitingContinue)return;
+    const c=currentEvent.choices?.[index];if(!c)return;
+    const backup=JSON.stringify(S),eventId=currentEvent.id,before=captureSnapshot();
+    try{
+      const result=c[1]();
+      if(result)log(result);
+      if(combat){v16AddTimeline("Combat","Affrontement engagé",result||"Un combat commence.");saveGame();render();return}
+      S.seen[eventId]=(S.seen[eventId]||0)+1;S.currentEventId=null;S.currentEventState=null;
+      applyChoiceConsequences(c[0],result);
+      v16DiscoverTechnique();
+      v16Style(currentEvent.domain||currentEvent.type||"general");
+      if(eventId.includes("finale")){v16EndSeason();setActionSummary(c[0],result||"La saison s'achève.",before,`Début de ${v16SeasonLabel()}`)}
+      else {S.v16.seasonActions++;S.weeklyActions=S.v16.seasonActions;S.periodActions=S.v16.seasonActions;S.dayActions=S.v16.seasonActions;v16AddTimeline("Action",c[0],result||"Action terminée.",{eventId});if(v16NeedFinale()){S.seasonFinale=true;v16GenerateEvent(true);setActionSummary(c[0],result||"La saison entre dans sa finale.",before,"Finale de saison") }else{v16GenerateEvent(false);setActionSummary(c[0],result||"Action terminée.",before)}}
+      S.awaitingContinue=true;saveGame();render();
+    }catch(err){console.error("V16 choice rollback",err);try{S=JSON.parse(backup);currentEvent=V16_SCENES.find(x=>x.id===eventId)||currentEvent;combat=S.combat||null;S.awaitingContinue=false;toast("L'action n'a pas pu être appliquée. Aucun changement n'a été conservé.");saveGame();render()}catch(_){toast("Erreur technique : la sauvegarde précédente a été conservée.")}}
+  }
+
+  function v16Continue(){if(!S||!S.awaitingContinue||S.runEnded)return;S.awaitingContinue=false;S.lastActionSummary=null;if(currentEvent&&currentEvent.id.startsWith("v16-finale"))return;saveGame();render()}
+
+  function v16StartCombat(enemy,hp,objective="defeat"){
+    v16Init();const def=typeof enemy==='object'?enemy:{name:String(enemy),hp:hp||60,power:16,alter:null};combat={enemy:def.name,hp:Math.max(25,hp||def.hp),maxHp:Math.max(25,hp||def.hp),turn:1,guard:0,analysis:0,objective,enemyDef:def,progress:0,civilians:objective==="protect"?100:0,startSnapshot:captureSnapshot(),alterRevealed:false};S.combat=combat;S.currentEventId=null;S.currentEventState=null;S.v16.combats.unshift({day:S.day,enemy:def.name,objective,status:"ongoing"});S.v16.combats=S.v16.combats.slice(0,30);render();saveGame()}
+  function v16Power(){let p=S.stats.force*.22+S.stats.vitesse*.16+S.stats.defense*.10+S.stats.endurance*.12+S.stats.technique*.18+S.stats.controle*.12+S.stats.courage*.06+S.stats.intelligence*.04;if(S.flags.noQuirk)p+=S.stats.intelligence*.08+S.stats.technique*.08;if(S.quirk)p+=(S.quirkLevel||0)*7;if(S.injuries.general)p-=S.injuries.general*2;return Math.max(5,p+v16GearBonus("force")*.22+v16GearBonus("technique")*.18)}
+  function v16RevealAlter(){if(!combat?.enemyDef?.alter||combat.enemyDef.alter.name!=="inconnu")return;combat.analysis=Math.min(100,(combat.analysis||0)+20);if(combat.analysis>=40&&!combat.alterRevealed){combat.alterRevealed=true;S.v16.secrets.knownAlterClues++;log(`Tu comprends une partie de l'Alter de ${combat.enemy}.`);v16Memory(`enemy:${combat.enemy}`,"Un Alter ennemi identifié",`Tu as compris une partie du fonctionnement de ${combat.enemy}.`)}}
+  function v16Fight(action){if(!combat||S.awaitingContinue)return;const c=combat,p=v16Power();let dmg=0,energy=0;try{
+      if(action==="attack"){dmg=p*(.65+rnd(.5));energy=13;v16Style("attack")}
+      if(action==="tech"){dmg=p*(.55+rnd(.55))*(S.stats.technique/60);energy=18;v16Style("technique");if(S.quirk)S.quirkXP+=8}
+      if(action==="ability"){if(!S.quirk&&!S.flags.noQuirk)return toast("Ton pouvoir n'est pas encore disponible.");dmg=p*(.75+rnd(.6));energy=24;v16Style("ability");if(S.quirk)S.quirkXP+=12;v16DiscoverTechnique()}
+      if(action==="analyze"){energy=7;modStat("intelligence",1);v16Style("analyze");v16RevealAlter()}
+      if(action==="guard"){c.guard=.58;energy=5;v16Style("guard");modStat("defense",1)}
+      if(action==="protect"){c.guard=.72;energy=9;c.civilians=Math.max(0,c.civilians-10);v16Style("protect");v16Faction("civilians",1)}
+      if(action==="escape"){v16Style("escape");const chanceEscape=.28+S.stats.vitesse/180+c.analysis/180+(v16Gear().some(x=>x.effect==="escape+")?.08:0);if(chance(chanceEscape)){log("Tu te désengages sans perdre complètement le contrôle de la situation.");return v16FinishCombat(false,"repli")};energy=8}
+      if(action==="surrender"){return v16FinishCombat(false,"abandon")}
+      S.energy=Math.max(0,S.energy-energy+(action==="analyze"&&v16Gear().some(x=>x.effect==="analysis+")?2:0));
+      if(dmg>0){dmg*=1+(v16Gear().some(x=>x.effect==="attack+")?.08:0);c.hp-=dmg;c.progress+=10;log(`Ton action inflige ${Math.round(dmg)} dégâts.`)}
+      if(c.objective==="analyze"&&c.analysis>=40)c.progress+=20;
+      if(c.objective==="protect"&&c.civilians<=0)c.progress+=30;
+      if(c.hp<=0)return v16FinishCombat(true,"victoire");
+      let enemyDmg=Math.max(2,(c.enemyDef?.power||16)+rnd(12))*(1-(c.guard||0))*(1-(c.analysis||0)/180);enemyDmg*=1-Math.min(.18,v16GearBonus("defense")/100);
+      c.guard=0;S.hp-=enemyDmg;log(`Tu encaisses ${Math.round(enemyDmg)} dégâts.`);if(chance(.08)){S.injuries.general=Math.min(3,(S.injuries.general||0)+1);log("Le combat laisse une nouvelle blessure.")}
+      if(S.hp<=0){if(S.metaRevives>0){S.metaRevives--;S.hp=25;S.injuries.general=2;log("Ton dispositif de survie te maintient debout.");return v16FinishCombat(false,"survie")};S.hp=0;combat=null;finishRun("death");return}
+      c.turn++;saveGame();render();
+    }catch(err){console.error(err);toast("Action de combat annulée : aucune progression perdue.")}}
+  function v16FinishCombat(success,reason){const name=combat?.enemy||"adversaire";const objective=combat?.objective||"defeat";if(success){S.rep+=objective==="protect"?8:6;v16Faction("heroes",2);v16Style("combatWin");if(objective==="analyze")v16RevealAlter();v16Memory(`combat:${name}:${S.day}`,"Un combat qui a compté",`Face à ${name}, tu as réussi à ${objective==="protect"?"protéger":objective==="analyze"?"comprendre":"vaincre"} avant de penser au reste.`)}else{v16Faction("heroes",-1)}if(S.v16.combats[0]){S.v16.combats[0].status=success?"victory":"ended";S.v16.combats[0].reason=reason}combat=null;S.combat=null;S.v16.seasonActions++;S.weeklyActions=S.v16.seasonActions;S.periodActions=S.v16.seasonActions;S.dayActions=S.v16.seasonActions;v16AddTimeline("Combat","Combat terminé",`${name} · ${success?"objectif rempli":"objectif non rempli"}`,{enemy:name,result:success?"victoire":"échec"});v16DiscoverTechnique();if(v16NeedFinale()){S.seasonFinale=true;v16GenerateEvent(true);setActionSummary(success?"Combat remporté":"Combat terminé",success?`Tu as rempli ton objectif contre ${name}.`:`Tu quittes l'affrontement sans victoire complète.`,null,"Finale de saison") }else{v16GenerateEvent(false);setActionSummary(success?"Combat remporté":"Combat terminé",success?`Tu as rempli ton objectif contre ${name}.`:`Tu quittes l'affrontement sans victoire complète.`,null,"Prochaine action")};S.awaitingContinue=true;saveGame();render()}
+  function v16RenderCombat(){const c=q("combat");if(!c)return;if(!combat){c.classList.add("hidden");return}c.classList.remove("hidden");const pct=clamp(100*combat.hp/combat.maxHp);const a=combat.enemyDef?.alter;const alter=a?(combat.alterRevealed?a.name:`??? — ${a.clue||"Alter non identifié"}`):"Aucun Alter identifié";const objective={defeat:"Vaincre",analyze:"Analyser",protect:"Protéger"}[combat.objective]||"Survivre";c.innerHTML=`<div class="v16-combat"><div class="v16-head"><div><small>OBJECTIF · ${objective}</small><h2>⚔️ ${combat.enemy}</h2></div><span class="tag">Tour ${combat.turn}</span></div><div class="stat"><span>Adversaire</span><div class="bar"><div class="fill" style="width:${pct}%"></div></div><b>${Math.max(0,Math.round(combat.hp))}</b></div><div class="v16-combat-info"><span>PV ${Math.round(S.hp)}</span><span>Énergie ${Math.round(S.energy)}</span><span>Alter : ${alter}</span></div><div class="v16-objective">${combat.objective==="protect"?`Civils protégés : ${100-Math.round(combat.civilians||0)}%`:combat.objective==="analyze"?`Analyse : ${Math.round(combat.analysis||0)}%`:"Chaque tour modifie la situation."}</div><div class="combat-actions"><button onclick="window.v16Fight('attack')">⚡ Attaquer</button><button onclick="window.v16Fight('tech')">🎯 Technique</button><button onclick="window.v16Fight('ability')">🔥 Capacité</button><button onclick="window.v16Fight('analyze')">🧠 Analyser</button><button onclick="window.v16Fight('guard')">🛡️ Défendre</button><button onclick="window.v16Fight('protect')">🤝 Protéger</button><button onclick="window.v16Fight('escape')">🏃 Se replier</button><button class="danger" onclick="window.v16Fight('surrender')">✋ Abandonner</button></div></div>`}
+
+  const OLD_RENDER=render,OLD_START=window.startGame,OLD_LOAD=window.loadGame,OLD_ADVANCE=window.advanceAfterChoice,OLD_CONTINUE=window.continueToNextAction;
+  function v16Render(){if(!S)return;v16Init();try{OLD_RENDER();}catch(e){console.error("V16 base render",e)}
+    q("date").textContent=`${S.phase} · ${S.lifeYear}e année · ${v16SeasonLabel()} · ${S.v16.seasonActions}/${S.v16.seasonPlan}`;
+    q("v12SeasonBar").innerHTML=`<div><strong>${S.lifeYear} · ${v16SeasonLabel()}</strong><small>${v16NeedFinale()?"⭐ Finale de saison":`Action ${S.v16.seasonActions+1} · objectif ${S.v16.seasonPlan}`}</small><div class="v12-progress"><i style="width:${Math.min(100,S.v16.seasonActions/S.v16.seasonPlan*100)}%"></i></div></div><span class="tag">${S.age} ans</span>`;
+    // Replace old panels with V16 information without breaking legacy save/UI.
+    const cp=q("powerPanel");if(cp)cp.insertAdjacentHTML("beforeend",v16AlterHtml()+v16GearHtml());
+    const rp=q("relationsList");if(rp)rp.innerHTML=v16RelHtml();
+    const career=q("careerPanel");if(career)career.insertAdjacentHTML("beforeend",`<div class="v16-card"><b>🌍 Factions</b><div class="v16-factions">${v16FactionHtml()}</div></div><div class="v16-card"><b>📖 Arcs narratifs</b>${v16ArcHtml()}</div>`);
+    const mem=q("memoryList");if(mem)mem.innerHTML=`<div class="v16-card"><b>🧠 Souvenirs et décisions</b>${(S.v16.memories||[]).slice(0,12).map(m=>`<div class="v16-memory"><b>${m.title}</b><small>${m.text}</small></div>`).join("")||`<small>Aucun souvenir majeur.</small>`}</div>`;
+    const world=q("worldPanel");if(world)world.innerHTML=`<div class="v16-card"><b>🌍 Le monde continue sans toi</b><small>Les autres personnages progressent entre tes actions.</small>${Object.entries(S.v16.npc).slice(0,8).map(([n,x])=>`<div class="v16-world"><b>${n}</b><span>Niv. ${x.level.toFixed(1)} · ${x.status}</span></div>`).join("")}</div><div class="v16-card"><b>📰 Nouvelles</b>${(S.v16.worldNews||[]).map(x=>`<div class="v16-memory"><small>${x}</small></div>`).join("")||`<small>Le monde est calme pour le moment.</small>`}</div>`;
+    const journal=q("journalList");if(journal)journal.innerHTML=`<div class="v16-card"><b>📜 Chronologie</b>${v16TimelineHtml()}</div>`;
+    v16RenderCombat();
+  }
+  render=v16Render;
+  function v16Start(){OLD_START();v16Init();v16ArcInit();v16PlanSeason();v16GenerateEvent(false);v16AddTimeline("Début","Le premier chapitre",`Ton histoire commence à ${S.age} ans.`);saveGame();render()}
+  window.startGame=v16Start;
+  function v16Load(){if(OLD_LOAD)OLD_LOAD();if(S){v16Init();v16ArcInit();if(!S.v16.seasonPlan)v16PlanSeason();if(!currentEvent&&!combat)v16GenerateEvent(false);render()}}
+  window.loadGame=v16Load;
+  window.choose=v16Choose;
+  window.continueToNextAction=v16Continue;
+  window.v16Buy=v16Buy;window.v16Equip=v16Equip;window.v16Unequip=v16Unequip;window.v16Fight=v16Fight;
+  startCombat=v16StartCombat;fight=v16Fight;renderCombat=v16RenderCombat;generateEvent=v16GenerateEvent;
+  // Re-enter V16 after every legacy beginDay/endDay call.
+  const oldBeginDay=beginDay;
+  beginDay=function(){oldBeginDay();if(S){v16Init();if(!S.v16.seasonPlan)v16PlanSeason();if(!currentEvent&&!combat)v16GenerateEvent(false)}};
+  // Make save schema explicitly identify V16.
+  const oldSave=saveGame;
+  saveGame=function(){if(S){v16Init();S.version=V16;S.saveVersion=V16;S.schemaVersion=16;S.gameId="MHA_ROAD";S.v16.equipped=S.v16.equipped||{}}return oldSave()};
+  // Restore combat from saves safely.
+  if(S){v16Init();v16ArcInit();if(S.combat&&!combat){combat=S.combat}if(!S.v16.seasonPlan&&!S.runEnded)v16PlanSeason()}
+  render=v16Render;
+  if(S&&!q("menu")?.classList.contains("hidden")){} else if(S)render();
+
+  // Expose a diagnostic hook for testing.
+  window.MHA_V16_DEBUG=()=>({version:16,season:{actions:S?.v16?.seasonActions,plan:S?.v16?.seasonPlan,name:S? v16SeasonLabel():null},combats:S?.v16?.combats?.length||0,techniques:S?.v16?.techniques||{},relations:S?.relationData||{},factions:S?.factionRep||{},arcs:S?.v16?.arcs||{},timeline:S?.v16?.timeline?.length||0,equipment:v16Gear().map(x=>x.name)});
+})();
+
 })();
 
 
