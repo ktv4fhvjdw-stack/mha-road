@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#080d19">
 <link rel="manifest" href="manifest.json">
-<title>MHA Road — V12</title>
+<title>MHA Road — V15</title>
 <style>
 :root{--bg:#070b14;--panel:#111a2b;--panel2:#17233a;--line:#2a3b5d;--txt:#f1f5ff;--muted:#9eacc8;--a:#70a7ff;--good:#58d89a;--bad:#ff7180;--gold:#ffd166;--violet:#9b83ff}
 *{box-sizing:border-box}html,body{margin:0;background:linear-gradient(180deg,#060a12,#0d1526 50%,#070b14);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -214,12 +214,12 @@ button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 <body>
 <div class="wrap">
 <header class="top">
-  <div><div class="brand">⚡ MHA ROAD <span class="tag">V14</span></div><div class="sub">RPG narratif procédural · monde vivant · saisons · routes divergentes · carrière jusqu’à la retraite · hors ligne</div></div>
+  <div><div class="brand">⚡ MHA ROAD <span class="tag">V15</span></div><div class="sub">RPG narratif procédural · monde vivant · saisons · routes divergentes · carrière jusqu’à la retraite · hors ligne</div></div>
   <div><button onclick="saveGame()">💾</button><button onclick="exportSave()">↥</button></div>
 </header>
 
 <section id="menu" class="card menu-hero">
-<div class="top"><div><div class="brand">⚡ MHA ROAD</div><div class="sub">Mode carrière · progression roguelite</div></div><span class="tag">V14</span></div>
+<div class="top"><div><div class="brand">⚡ MHA ROAD</div><div class="sub">Mode carrière · progression roguelite</div></div><span class="tag">V15</span></div>
 <div class="grid3" style="margin-top:14px"><div class="metric">🏆<div><span class="small muted">Runs</span><b id="metaRuns">0</b></div></div><div class="metric">☠️<div><span class="small muted">Décès</span><b id="metaDeaths">0</b></div></div><div class="metric">💎<div><span class="small muted">Crédits</span><b id="metaCredits">0</b></div></div></div>
 <div id="lastRun" class="notice" style="display:none"></div><div id="metaAchievements" class="notice" style="display:none"></div>
 <div class="menu-actions"><button class="primary" onclick="showCreation()">▶️ Nouvelle carrière</button><button onclick="showShop()">🛒 Boutique</button><button onclick="importSave()">📥 Importer une partie</button><button onclick="loadGame()">💾 Reprendre la dernière partie</button></div>
@@ -228,7 +228,7 @@ button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 <section id="shop" class="card hidden"><div class="top"><div><h2>🛒 Boutique de méta-progression</h2><div class="muted">Les achats deviennent des bonus de départ consommables lors de la prochaine carrière.</div></div><button onclick="showMenu()">← Menu</button></div><div class="metric" style="margin-bottom:10px">💎 Crédits disponibles <b id="shopCredits">0</b></div><div id="shopList" class="shop-grid"></div></section>
 <section id="creation" class="creation-shell">
 <div class="creation-hero">
-<div class="eyebrow">MHA ROAD · V14</div>
+<div class="eyebrow">MHA ROAD · V15</div>
 <h1>Construis ton histoire.</h1>
 <p>Tu ne choisis pas une destinée. Tu crées un parcours, et le monde réagit à tes décisions.</p>
 <div class="creation-badges"><span>⚡ Progression dynamique</span><span>🌍 Monde vivant</span><span>🎲 Événements procéduraux</span></div>
@@ -320,7 +320,7 @@ button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
 <script>
 "use strict";
-const KEY="mha-road-v13-save";
+const KEY="mha-road-v15-save";
 const LEGACY_KEYS=["mha-road-v11-save","mha-road-v10-save","mha-road-v9.2-save","mha-road-v9-save","mha-road-v8-save","mha-road-v7-save","mha-road-v6-save"];
 const META_KEY="mha-road-v7-meta";
 const SHOP_ITEMS={
@@ -1192,7 +1192,7 @@ function generateSeasonFinale(){
 }
 function generateEvent(isFinale=false){
  if(combat)return;
- if(isFinale || S.seasonFinale){ currentEvent=generateSeasonFinale(); S.currentEventId=currentEvent.id; S.currentEventState={day:S.day,phase:S.phase,renderedAt:Date.now()}; return; }
+ if(isFinale || S.seasonFinale){ currentEvent=generateSeasonFinale(); markEventSource(); S.currentEventId=currentEvent.id; S.currentEventState={day:S.day,phase:S.phase,renderedAt:Date.now()}; return; }
  const candidates=EVENTS.filter(e=>compatible(e));
  const weekIds=new Set(S.weekEventIds||[]);
  const recent=new Set((S.recentEvents||[]).slice(-5));
@@ -1208,7 +1208,7 @@ function generateEvent(isFinale=false){
    chosen=pick(pool);
  }
  if(!chosen)chosen=candidates[0]||EVENTS[0];
- currentEvent=chosen;
+ currentEvent=chosen; markEventSource();
  S.weekEventIds=S.weekEventIds||[];
  S.weekEventIds.push(chosen.id);
  S.recentEvents=S.recentEvents||[];
@@ -1452,13 +1452,64 @@ function renderCareer(){
  ${S.mission?`<div class="notice warning"><b>Mission active :</b> ${S.mission.objective} · difficulté ${S.mission.difficulty} · récompense ${S.mission.reward} ¥${S.mission.enemy?` · ${S.mission.enemy}`:""}</div>`:""}
  ${S.villain&&S.villain.active?`<div class="notice warning"><b>Réseau clandestin :</b> ${S.villain.faction||"Sans faction"} · pseudonyme ${S.villain.alias} · notoriété ${S.villain.notoriety} · chaleur ${S.villain.heat} · crimes ${S.villain.crimes} ${S.villain.wanted?"· RECHERCHÉ":""}</div>`:""}
  <div class="notice"><b>Alignement :</b> Héroïque ${S.alignment.hero} · Éthique ${S.alignment.ethics} · Souterrain ${S.alignment.underground} · Criminel ${S.alignment.criminal}</div>
- <div class="small muted">V12 : interface RPG mobile, monde vivant, mémoire des choix, progression émergente, relations persistantes, secrets et routes de carrière divergentes. La retraite reste possible de 60 à 70 ans.</div>`;
+ <div class="small muted">V15 : moteur stabilisé, interface RPG mobile, monde vivant, mémoire des choix, progression émergente, relations persistantes, secrets et routes de carrière divergentes. La retraite reste possible de 60 à 70 ans.</div>`;
 }
 function renderJournal(){q("journalList").innerHTML=S.history.map(x=>`<div class="entry"><b>J${x.day}</b> — ${x.text}</div>`).join("")}
 function tab(id,btn){v12Tab(id,btn)}
 
+/* ================= V15 STABILITY LAYER =================
+   Canonical save schema, defensive validation, deterministic relation state,
+   and explicit event metadata. This layer is intentionally backward compatible.
+   =============================================================== */
+const MHA_SAVE_VERSION=15;
+const MHA_GAME_ID="MHA_ROAD";
+function ensureV15Schema(){
+ if(!S)return;
+ S.gameId=MHA_GAME_ID;
+ S.saveVersion=MHA_SAVE_VERSION;
+ S.schemaVersion=MHA_SAVE_VERSION;
+ S.createdAt=S.createdAt||new Date().toISOString();
+ S.updatedAt=new Date().toISOString();
+ S.meta=S.meta||{};
+ S.flags=S.flags||{};
+ S.hidden=S.hidden||{};
+ S.stats=S.stats||{};
+ S.relations=S.relations||{};
+ S.relationData=S.relationData||{};
+ S.world=S.world||{ticks:0,npcs:{},news:[]};
+ S.world.npcs=S.world.npcs||{};
+ S.world.news=S.world.news||[];
+ S.recentEvents=Array.isArray(S.recentEvents)?S.recentEvents:[];
+ S.weekEventIds=Array.isArray(S.weekEventIds)?S.weekEventIds:[];
+ S.seen=S.seen||{};
+ S.injuries=S.injuries||{};
+ REL_NAMES.forEach(n=>{
+   S.relations[n]=Number.isFinite(Number(S.relations[n]))?Number(S.relations[n]):0;
+   S.relationData[n]=Object.assign({trust:0,affection:0,respect:0,fear:0,rivalry:0,debt:0,secrets:[],memories:[]},S.relationData[n]||{});
+ });
+}
+function validateSaveData(x){
+ if(!x||typeof x!=="object")throw new Error("save-not-object");
+ if(x.gameId&&x.gameId!==MHA_GAME_ID)throw new Error("wrong-game");
+ if(!x.stats||typeof x.stats!=="object")throw new Error("missing-stats");
+ if(!x.relations||typeof x.relations!=="object")throw new Error("missing-relations");
+ return true;
+}
+function markEventSource(){
+ if(!currentEvent)return;
+ currentEvent.source=currentEvent.source||"authored";
+ currentEvent.domain=currentEvent.domain||currentEvent.type||"general";
+}
+function explicitChoiceEffects(label,result){
+ /* Text parsing is retained only as a legacy fallback. New events should set
+    choice.effects explicitly; this function never infers narrative facts from
+    arbitrary text when explicit effects are available. */
+ return {legacy:true,label:label||"",result:result||""};
+}
+
 function saveGame(){
  if(!S)return;
+ ensureV15Schema();
  S.currentEventId=currentEvent?currentEvent.id:null;
  S.currentEventState=currentEvent?{day:S.day,phase:S.phase}:null;
  S.combat=combat?JSON.parse(JSON.stringify(combat)):null;
@@ -1487,11 +1538,12 @@ function migrateState(){
  Object.assign(S.career,{rank:S.career.rank||0,score:S.career.score||0,festival:S.career.festival||{active:false,round:0,points:0,opponents:[],finished:false},stage:S.career.stage||null,missions:S.career.missions||0,path:S.career.path||"student",club:S.career.club||null,clubTier:S.career.clubTier||0,schoolStage:S.career.schoolStage||S.schoolStage,orientation:S.career.orientation||null});
  if(!S.school && S.schoolStage==="college")S.school="Collège — classe de 4e";
  updateSchoolResults();
+ ensureV15Schema();
 }
 function loadGame(){
  try{
   const raw=localStorage.getItem(KEY)||LEGACY_KEYS.map(k=>localStorage.getItem(k)).find(Boolean)||localStorage.getItem(OLD_KEY);if(!raw){renderMenu();return;}
-  S=JSON.parse(raw);migrateState();combat=S.combat||null;delete S.combat;
+  S=JSON.parse(raw);validateSaveData(S);migrateState();ensureV15Schema();combat=S.combat||null;delete S.combat;
   q("menu").classList.add("hidden");q("shop").classList.add("hidden");q("runEnd").classList.add("hidden");q("creation").classList.add("hidden");q("game").classList.remove("hidden");
   if(!combat&&!S.awaitingContinue){if(!restoreCurrentEvent())generateEvent()}
   updateRelationshipTypes();render();
@@ -1499,17 +1551,17 @@ function loadGame(){
 }
 function exportSave(){
  if(!S){toast("Aucune partie");return}
- const copy=JSON.parse(JSON.stringify(S));copy.meta=getMeta();copy.exportedAt=new Date().toISOString();
+ ensureV15Schema();const copy=JSON.parse(JSON.stringify(S));copy.meta=getMeta();copy.gameId=MHA_GAME_ID;copy.saveVersion=MHA_SAVE_VERSION;copy.exportedAt=new Date().toISOString();
  const blob=new Blob([JSON.stringify(copy,null,2)],{type:"application/json"});
- const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mha-road-v13-save.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mha-road-v15-save.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
 }
 function importSave(){
  const input=document.createElement("input");input.type="file";input.accept=".json,application/json";
  input.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
- r.onload=()=>{try{const x=JSON.parse(r.result);if(!x||!x.stats||!x.relations)throw new Error("format");S=x;migrateState();if(x.meta)localStorage.setItem(META_KEY,JSON.stringify(x.meta));combat=S.combat||null;delete S.combat;localStorage.setItem(KEY,JSON.stringify(S));location.reload()}catch(err){alert("Fichier de sauvegarde invalide.")}};
+ r.onload=()=>{try{const x=JSON.parse(r.result);validateSaveData(x);S=x;migrateState();ensureV15Schema();if(x.meta)localStorage.setItem(META_KEY,JSON.stringify(x.meta));combat=S.combat||null;delete S.combat;localStorage.setItem(KEY,JSON.stringify(S));location.reload()}catch(err){alert("Fichier de sauvegarde invalide.")}};
  r.readAsText(f)};input.click();
 }
-function newGame(){if(confirm("Abandonner la carrière actuelle ? Ta progression de boutique restera conservée.")){localStorage.removeItem(KEY);localStorage.removeItem("mha-road-v8-save");localStorage.removeItem("mha-road-v9-save");localStorage.removeItem("mha-road-v9.2-save");localStorage.removeItem("mha-road-v6-save");localStorage.removeItem(OLD_KEY);showMenu()}}
+function newGame(){if(confirm("Abandonner la carrière actuelle ? Ta progression de boutique restera conservée.")){localStorage.removeItem(KEY);localStorage.removeItem("mha-road-v14-save");localStorage.removeItem("mha-road-v13-save");localStorage.removeItem("mha-road-v8-save");localStorage.removeItem("mha-road-v9-save");localStorage.removeItem("mha-road-v9.2-save");localStorage.removeItem("mha-road-v6-save");localStorage.removeItem(OLD_KEY);showMenu()}}
 renderMenu();window.addEventListener("beforeunload",()=>{try{if(S&&!S.runEnded)saveGame()}catch(e){}});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js", {updateViaCache:"none"}).then(reg=>{reg.update().catch(()=>{});}).catch(()=>{}));}
 
@@ -1518,9 +1570,9 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
    Legacy V11/V12/V12.5/V13 choice wrappers are removed.
 =============================================================== */
 (function(){
-  const BUILD='V14.1-CLICKFIX-2026-10-07';
+  const BUILD='V15.0-STABLE-2026-10-07';
   window.MHA_ROAD_BUILD=BUILD;
-  document.title='MHA Road — V14 Clean Core';
+  document.title='MHA Road — V15';
 
   const V11_MAJOR=new Set(["Secret","Alter","Arc","Festival","Stage","Mission","Orientation","Vilain","Carrière","Fin","Combat","Sauvetage"]);
   const V11_SCHOOLS=["U.A. — Filière héroïque","U.A. — Filière générale","Shiketsu","Lycée normal","Collège — classe de 4e","Parcours indépendant","Hors système — activité clandestine"];
@@ -2196,6 +2248,7 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
     S.quirk=null;
     S.quirkLevel=0;
     S.quirkXP=0;
+    ensureV15Schema();
     S.v13.discovery={status:"unknown",checks:0,manifestation:0,rarity:null};
     S.flags.quirkMystery=true;
     S.flags.quirkRevealed=false;
@@ -2207,7 +2260,7 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
   function cleanLoadGame(){
     CORE.loadGame();
     if(S){
-      v11Init();v125Init();init();
+      v11Init();v125Init();init();ensureV15Schema();
       cleanRouteDetect();
     }
     render();
@@ -2254,7 +2307,7 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
   function cleanMigrateState(){
     CORE.migrateState();
     if(S){
-      v11Init();v125Init();init();
+      v11Init();v125Init();init();ensureV15Schema();
       if(S.schoolStage==="college"&&S.school&&S.school!=="Collège — classe de 4e")
         S.schoolStage="highschool";
       if(S.school==="U.A. — Filière héroïque")S.career.path="hero";
