@@ -1518,7 +1518,7 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
    Legacy V11/V12/V12.5/V13 choice wrappers are removed.
 =============================================================== */
 (function(){
-  const BUILD='V14-CLEAN-CORE-2026-10-07';
+  const BUILD='V14.1-CLICKFIX-2026-10-07';
   window.MHA_ROAD_BUILD=BUILD;
   document.title='MHA Road — V14 Clean Core';
 
@@ -2182,7 +2182,6 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
   }
 
   // THE ONLY choice handler.
-  choose=cleanChoose;
   window.choose=cleanChoose;
 
   // Combat scaling is defined once.

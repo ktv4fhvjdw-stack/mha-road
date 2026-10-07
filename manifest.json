@@ -1,7 +1,7 @@
 {
-  "name": "MHA Road V14 Clean Core",
-  "short_name": "MHA Road V14",
-  "start_url": "./index.html?v=14-clean-2",
+  "name": "MHA Road V14.1 Click Fix",
+  "short_name": "MHA Road V14.1",
+  "start_url": "./index.html?v=14.1-clickfix-1",
   "display": "standalone",
   "background_color": "#0b0f17",
   "theme_color": "#0b0f17",
