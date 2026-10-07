@@ -1,11 +1,9 @@
 {
-  "name": "MHA Road V13.4",
+  "name": "MHA Road V14 — Clean Core",
   "short_name": "MHA Road",
-  "start_url": "./index.html?v=13.4",
-  "scope": "./",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0b0f17",
-  "theme_color": "#0b0f17",
-  "orientation": "portrait",
-  "icons": []
+  "background_color": "#05070d",
+  "theme_color": "#05070d",
+  "orientation": "portrait"
 }

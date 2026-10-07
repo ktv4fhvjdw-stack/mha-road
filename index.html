@@ -1238,6 +1238,8 @@ function choose(index){
  S.awaitingContinue=true;
  saveGame();render();
 }
+
+window.__MHA_CORE_CHOOSE__=choose;
 function remember(title,text){
  if(!S.memories)S.memories=[];
  S.memories.unshift({title,text,day:S.day,season:seasonName()});
@@ -1433,7 +1435,7 @@ function renderEvent(){
  q("eventTitle").textContent=currentEvent.title;q("eventType").textContent=currentEvent.type;
  q("eventText").textContent=typeof currentEvent.text==="function"?currentEvent.text():currentEvent.text;
  q("eventChoices").innerHTML="";
- currentEvent.choices.forEach((c,i)=>{const b=document.createElement("button");b.className="choice";b.innerHTML=`${i+1}. ${c[0]}`;b.onclick=()=>choose(i);q("eventChoices").appendChild(b)});
+ currentEvent.choices.forEach((c,i)=>{const b=document.createElement("button");b.className="choice";b.innerHTML=`${i+1}. ${c[0]}`;q("eventChoices").appendChild(b)});
 }
 function renderStats(){
  q("statsList").innerHTML=Object.entries(S.stats).map(([k,v])=>`<div class="stat"><span>${STAT_LABEL[k]}</span><div class="bar"><div class="fill" style="width:${v}%"></div></div><b>${Math.round(v)}</b></div>`).join("");
@@ -1534,8 +1536,15 @@ function newGame(){if(confirm("Abandonner la carrière actuelle ? Ta progression
 renderMenu();window.addEventListener("beforeunload",()=>{try{if(S&&!S.runEnded)saveGame()}catch(e){}});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js", {updateViaCache:"none"}).then(reg=>{reg.update().catch(()=>{});}).catch(()=>{}));}
 
-/* ========================= MHA ROAD V11 CORE ========================= */
+/* ================= MHA ROAD V14 — CLEAN CORE =================
+   One state → one event engine → one choice handler.
+   Legacy V11/V12/V12.5/V13 choice wrappers are removed.
+=============================================================== */
 (function(){
+  const BUILD='V14-CLEAN-CORE-2026-10-07';
+  window.MHA_ROAD_BUILD=BUILD;
+  document.title='MHA Road — V14 Clean Core';
+
   const V11_MAJOR=new Set(["Secret","Alter","Arc","Festival","Stage","Mission","Orientation","Vilain","Carrière","Fin","Combat","Sauvetage"]);
   const V11_SCHOOLS=["U.A. — Filière héroïque","U.A. — Filière générale","Shiketsu","Lycée normal","Collège — classe de 4e","Parcours indépendant","Hors système — activité clandestine"];
   const V11_ROUTES=["Combattant","Stratège","Support Gear","Mobilité","Protecteur","Ingénieur","Dépassement humain","Hybride"];
@@ -1559,18 +1568,6 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
     if(!S.career.path)S.career.path="student";
   }
   v11Init();
-
-  // Slow permanent-stat growth: normal actions cannot dump +4/+5 into a stat anymore.
-  const v11OriginalModStat=modStat;
-  modStat=function(key,value){
-    if(S && S._v11ActionContext){
-      const major=!!S._v11MajorAction;
-      const limit=major?2:1;
-      if(value>0)value=Math.min(value,limit);
-      else if(value<0)value=Math.max(value,-limit);
-    }
-    return v11OriginalModStat(key,value);
-  };
 
   function v11RouteDetect(){
     if(!S||!S.flags||!S.flags.noQuirk)return;
@@ -1636,129 +1633,6 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
     S.weekEventIds=S.weekEventIds||[];S.weekEventIds.push(currentEvent.id);
   }
   generateEvent=v11GenerateEvent;
-
-  // V11 seasonal pacing: five normal actions, then one finale.
-  const v11OriginalAdvance=advanceAfterChoice;
-  advanceAfterChoice=function(){
-    v11Init();
-    S.seasonAction=(S.seasonAction||0)+1;
-    S.periodActions=S.seasonAction; S.weeklyActions=S.seasonAction; S.dayActions=S.seasonAction;
-    if(S.seasonAction>=5){
-      S.seasonFinale=true;S.phase=`Finale de ${seasonName()}`;
-      v11GenerateEvent(true);render();saveGame();return;
-    }
-    S.seasonFinale=false;S.phase=seasonName();
-    v11AdvanceNPCs();
-    // Gentle recovery between actions, injuries remain meaningful.
-    S.energy=clamp(S.energy+8);S.hp=clamp(S.hp+4,0,S.maxHp);
-    v11GenerateEvent(false);
-    window.scrollTo({top:0,behavior:"smooth"});
-    render();saveGame();
-  };
-
-  // Finale consumes one action and opens the next season.
-  const v11OriginalChoose=choose;
-  choose=function(index){
-    if(!currentEvent||combat||S.awaitingContinue)return;
-    S._v11ActionContext=true;S._v11MajorAction=V11_MAJOR.has(currentEvent.type)||currentEvent.id.indexOf("seasonFinale")===0;
-    const before=captureSnapshot();
-    const id=currentEvent.id;
-    try{
-      const c=currentEvent.choices[index];if(!c)return;
-      const result=c[1]();if(result)log(result);
-      if(combat){S._v11ActionContext=false;S._v11MajorAction=false;setActionSummary(c[0],result||"Le combat commence.",before,"Combat en cours");saveGame();render();return;}
-      S.seen[id]=(S.seen[id]||0)+1;
-      if(S.flags.noQuirk){
-        const t=(c[0]+" "+(result||"")).toLowerCase();
-        if(/analy|observer|étudier|plan|strat/.test(t))v11Learn("strategy");
-        if(/combat|frapper|duel|gagner|attaque/.test(t))v11Learn("combat");
-        if(/protéger|secours|aider|sauver/.test(t))v11Learn("protector");
-        if(/équipement|matériel|support|outil/.test(t))v11Learn("support");
-        if(/fuir|éviter|esquive|mobilité|courir/.test(t))v11Learn("mobility");
-        if(/constru|invent|réparer|atelier/.test(t))v11Learn("engineer");
-        if(/entraîner|endur|dépass/.test(t))v11Learn("overcome");
-      }
-      S.currentEventId=null;S.currentEventState=null;
-      if(S.energy<0){S.energy=0;S.injuries.general=2;log("La fatigue devient trop importante. Tu termines l'action épuisé.");}
-      if(S.seasonFinale){
-        S.seasonHistory.push({year:S.lifeYear,season:S.season,name:seasonName(),event:id,rep:S.rep,route:S.career.path});
-        S.seasonHistory=S.seasonHistory.slice(-16);
-        S.seasonFinale=false;S.seasonAction=0;S.periodActions=0;S.weeklyActions=0;
-        S.season=(S.season+1)%4;
-        if(S.season===0){S.lifeYear=(S.lifeYear||1)+1;S.day=(S.day||1)+364;S.age=(S.startingAge||12)-1+S.lifeYear;S.money+=Math.max(160,Math.round(220+(S.careerRank||0)*6));}
-        S.phase=seasonName();
-        v11AdvanceNPCs();
-        v11GenerateEvent(false);
-        setActionSummary(c[0],result||"La saison s'achève.",before,`Début de ${seasonName()}`);
-      }else{
-        setActionSummary(c[0],result||"Action terminée.",before);
-      }
-      S.awaitingContinue=true;saveGame();render();
-      setTimeout(()=>{const el=q("eventTitle");if(el)el.scrollIntoView({behavior:"smooth",block:"start"})},40);
-    }finally{S._v11ActionContext=false;S._v11MajorAction=false;}
-  };
-
-  // Easier, more readable combat: enemy pressure scales but is no longer a wall.
-  const v11OriginalStartCombat=startCombat;
-  startCombat=function(enemy,hp){v11OriginalStartCombat(enemy,Math.max(32,Math.round(hp*.72)));};
-  const v11OriginalFight=fight;
-  fight=function(action){
-    if(!combat)return;
-    // Temporarily soften enemy damage and improve defensive value by adapting the state, then use V10 engine.
-    const oldGuard=combat.guard;
-    v11OriginalFight(action);
-    // Small safety floor: a normal fight should not randomly kill a healthy student in one exchange.
-    if(S&&S.hp<=0&&combat){S.hp=8;combat.turn++;combat.guard=oldGuard||0;saveGame();render();}
-  };
-
-  // Quirkless panel becomes a true specialization system.
-  const oldRenderPower=renderPower;
-  renderPower=function(){
-    oldRenderPower();
-    if(!S||!S.flags||!S.flags.noQuirk)return;
-    v11RouteDetect();
-    const p=S.quirklessRoute||{};
-    const el=q("powerPanel");
-    if(!el)return;
-    const main=p.primary||"À révéler"; const sec=p.secondary||"Aucune encore";
-    el.innerHTML+=`<div class="v11-world"><b>🛠️ Spécialisation sans Alter</b><p class="small muted">Tu ne choisis pas une classe. Tes actions construisent progressivement ton style.</p><div class="v11-route"><span class="v11-pill">Voie principale : ${main}</span><span class="v11-pill">Voie secondaire : ${sec}</span></div><p class="small">Combattant · Stratège · Support Gear · Mobilité · Protecteur · Ingénieur · Dépassement humain · Hybride</p></div>`;
-  };
-
-  // World panel appended to career view: NPCs evolve even when you ignore them.
-  const oldRenderCareer=renderCareer;
-  renderCareer=function(){
-    oldRenderCareer();
-    if(!S)return;
-    const el=q("careerPanel");if(!el)return;
-    const top=Object.entries(S.npcWorld||{}).sort((a,b)=>(b[1].level||0)-(a[1].level||0)).slice(0,6).map(([n,x])=>`<div class="relation"><div class="top"><b>${n}</b><span class="tag">Niv. ${Math.round(x.level||0)}</span></div><div class="small muted">Objectif : ${x.goal||"progresser"} · lien ${Math.round(S.relations[n]||0)}</div></div>`).join("");
-    el.innerHTML+=`<div class="v11-world"><b>🌍 Monde vivant</b><p class="small muted">Les autres élèves et professionnels progressent, changent d’objectif et peuvent devenir tes rivaux, alliés ou concurrents sans attendre que tu les choisisses.</p>${top}</div><div class="v11-world"><b>🗓️ Saisons vécues</b><p class="small">${(S.seasonHistory||[]).slice(-6).map(x=>`Année ${x.year} · ${["Printemps","Été","Automne","Hiver"][x.season]} · ${x.name}`).join("<br>")||"Aucune saison terminée."}</p></div>`;
-  };
-
-  // Fix school persistence on creation and migration.
-  const oldMigrate=migrateState;
-  migrateState=function(){
-    oldMigrate(); v11Init();
-    if(S.schoolStage==="college" && S.school && S.school!=="Collège — classe de 4e")S.schoolStage="highschool";
-    if(S.school==="U.A. — Filière héroïque")S.career.path="hero";
-    if(S.school==="U.A. — Filière générale")S.career.path="hero_candidate";
-    if(S.school==="Shiketsu")S.career.path="hero";
-    if(S.school==="Lycée normal")S.career.path="civil";
-    S.version=12;
-  };
-
-  // Reset to V11 save key and preserve old saves as importable legacy data.
-  const oldSaveGame=saveGame;
-  saveGame=function(){if(S){S.version=12;S.v11={...(S.v11||{}),version:11};}return oldSaveGame();};
-  const oldNewGame=newGame;
-  newGame=function(){if(confirm("Abandonner cette carrière ? Les succès et crédits de méta-progression resteront conservés.")){localStorage.removeItem("mha-road-v11-save");localStorage.removeItem(KEY);oldNewGame();}};
-  // Use V11 key everywhere from now on.
-  window.addEventListener("load",()=>{try{localStorage.removeItem("mha-road-v11-stale");}catch(_){}});
-  // First render after all overrides are installed.
-  if(S){v11Init();render();}
-})();
-
-/* ========================= MHA ROAD V12.5 COMPLETE LAYER ========================= */
-(function(){
   const V125=125;
   const V125_TRAITS=[
     ["Protecteur","Tu protèges les autres même lorsque cela te coûte quelque chose.","protect"],
@@ -1872,30 +1746,6 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
     if(S.quirkXP>=120&&!S.quirkTechniques.includes("Évolution avancée")){S.quirkTechniques.push("Évolution avancée");S.quirkLevel=Math.max(S.quirkLevel||1,3);remember("Évolution avancée","Ton Alter franchit un nouveau seuil, avec un coût plus important sur ton corps.");}
     S.quirkDrawback=clamp(Math.floor((S.quirkXP||0)/45),0,5);
   }
-
-  // Existing choices now feed the deeper V12.5 behavioral systems.
-  const oldChoose=choose;
-  choose=function(index){
-    if(!S||!currentEvent)return oldChoose(index);
-    const title=currentEvent.title||"Action";
-    const before={...S.stats};
-    const oldRep=S.rep, oldPublic=S.publicRep;
-    const c=currentEvent.choices&&currentEvent.choices[index];
-    const label=c?c[0]:"Action";
-    const result=oldChoose(index);
-    const text=`${label} ${result||""}`;
-    v125TraitUpdate(text);v125QuirkProgress(text);
-    if(S.rep>oldRep+2||S.publicRep>oldPublic+2)v125RecordStory("Réputation en hausse",`Ton action lors de « ${title} » commence à modifier ton image.`,"reputation");
-    if(/échec|échou|raté|perd|bless/i.test(text))S.hidden.failureCount++;
-    if(/refus|fuir|abandon/i.test(text)&&/tuer|mort|meurtr/i.test(text))S.hidden.refusedKill=true;
-    if(/proté|sauve|secour|aide/i.test(text)){S.hidden.inheritScore=(S.hidden.inheritScore||0)+1;}
-    if(S.flags.noQuirk&&/proté|sauve|secour|aide/i.test(text))S.hidden.inheritScore=(S.hidden.inheritScore||0)+1;
-    v125MaybeArcMemory();
-    v125MaybeLegacyFlag();
-    saveGame();
-    return result;
-  };
-
   function v125MaybeArcMemory(){
     if(!S||!S.storyThreads)return;
     if((S.hidden.failureCount||0)>=2)S.storyThreads.failure={active:true,progress:S.hidden.overcomeFailures||0};
@@ -1909,106 +1759,6 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 
   // Add the multi-season consequence events to the existing procedural pool.
   V125_ARCS.concat(V125_SECRET).forEach(e=>{if(!EVENTS.some(x=>x.id===e.id))EVENTS.push(e);});
-
-  const oldGenerate=generateEvent;
-  generateEvent=function(isFinale=false){
-    if(!S)return oldGenerate(isFinale);
-    const eligible=[...V125_ARCS,...V125_SECRET].filter(e=>{try{return e.need()}catch(_){return false}});
-    // Secret routes stay genuinely rare. They are never shown as a UI objective before discovery.
-    const secret=eligible.filter(e=>e.type==="Secret");
-    if(secret.length&&!isFinale){
-      const roll=rnd(100);
-      if(roll<4){currentEvent=pick(secret);S.currentEventId=currentEvent.id;S.currentEventState={day:S.day,phase:S.phase,renderedAt:Date.now()};return;}
-    }
-    const arcs=eligible.filter(e=>e.type!=="Secret");
-    if(arcs.length&&!isFinale&&chance(Math.min(.32,.08+arcs.length*.035))){currentEvent=pick(arcs);S.currentEventId=currentEvent.id;S.currentEventState={day:S.day,phase:S.phase,renderedAt:Date.now()};return;}
-    return oldGenerate(isFinale);
-  };
-
-  // Replace the remaining automatic page jumps with a local story viewport.
-  const oldAdvance=advanceAfterChoice;
-  advanceAfterChoice=function(){
-    const r=oldAdvance();
-    requestAnimationFrame(()=>{const game=q("game"),story=q("view-story");if(game&&story)story.scrollIntoView({behavior:"auto",block:"start"});});
-    return r;
-  };
-
-  // Equipment now has lightweight functional bonuses rather than being purely cosmetic.
-  const oldPowerScore=powerScore;
-  powerScore=function(){
-    let p=oldPowerScore();
-    const gear=S&&S.equipment||[];
-    if(gear.some(x=>/Prototype|support|soutien/i.test(x)))p+=3;
-    if(gear.some(x=>/Mobilité|propulsion|agilité/i.test(x)))p+=2;
-    if(S&&S.quirklessRoute&&S.quirklessRoute.primary==="Support Gear")p+=4;
-    if(S&&S.quirklessRoute&&S.quirklessRoute.primary==="Ingénieur")p+=2;
-    if(S&&S.traits&&S.traits.includes("Stratège"))p+=1;
-    return p;
-  };
-
-  // Deeper endings: the same run can finish as a legacy, independent or self-made legend.
-  const oldEnding=getEnding;
-  getEnding=function(outcome){
-    if(outcome==="retirement"&&S){
-      if(S.flags.inheritedPower&&S.publicRep>=55)return {title:"🟢 Héritage transmis",desc:"Tu termines ta carrière en ayant porté un pouvoir transmis et en ayant transformé ce legs en une histoire qui t'appartient."};
-      if(S.flags.noQuirk&&S.quirklessRoute&&S.quirklessRoute.primary==="Stratège"&&S.career.missions>=8)return {title:"🧠 Stratège légendaire",desc:"Sans Alter, tu as construit une carrière fondée sur l'analyse, la préparation et une compréhension exceptionnelle du terrain."};
-      if(S.flags.noQuirk&&S.quirklessRoute&&S.quirklessRoute.primary==="Support Gear")return {title:"🛠️ Pionnier du support",desc:"Tu as démontré qu'une carrière héroïque pouvait être redéfinie par la technologie et l'ingéniosité."};
-      if(S.traits&&S.traits.includes("Protecteur")&&(S.hidden.rescueCount||0)>=8)return {title:"🛡️ Gardien des autres",desc:"Ton nom reste associé à une chose : tu étais là lorsque les autres avaient besoin de toi."};
-    }
-    if(outcome!=="death"&&S&&S.career&&S.career.path==="independent"&&(S.rep>=55||S.publicRep>=45))return {title:"🧭 Légende indépendante",desc:"Tu as refusé le parcours classique et construit une carrière entièrement à ton image."};
-    return oldEnding(outcome);
-  };
-
-  // Richer character panel appended to the existing V12 character/power views.
-  const oldRenderPower=renderPower;
-  renderPower=function(){
-    oldRenderPower();if(!S)return;
-    const el=q("powerPanel");if(!el)return;
-    const traits=S.traits&&S.traits.length?S.traits.map(t=>`<span class="v125-pill">${t}</span>`).join(""):'<span class="muted small">Tes traits apparaîtront avec ton comportement.</span>';
-    const tech=S.quirkTechniques&&S.quirkTechniques.length?S.quirkTechniques.join(" · "):"Aucune technique personnelle encore.";
-    const build=S.flags.noQuirk?(S.quirklessRoute&&S.quirklessRoute.primary||"Indéterminée"):"Alter";
-    el.innerHTML+=`<div class="v125-panel"><div class="v125-title"><b>🧠 Identité émergente</b><span class="tag">${build}</span></div><div class="v125-pills">${traits}</div><div class="small muted" style="margin-top:9px">Techniques : ${tech}</div>${S.quirk?`<div class="small muted">Maîtrise de l’Alter : ${S.quirkMastery||0}/10 · coût physique ${S.quirkDrawback||0}/5</div>`:""}</div>`;
-  };
-
-  const oldRenderCareer=renderCareer;
-  renderCareer=function(){
-    oldRenderCareer();if(!S)return;const el=q("careerPanel");if(!el)return;
-    const moments=(S.career.keyMoments||[]).slice(0,5).map(x=>`<div class="v125-moment"><b>${x.title}</b><small>J${x.day}</small></div>`).join("")||'<span class="muted small">Les moments importants apparaîtront ici.</span>';
-    const memories=(S.memories||[]).slice(0,4).map(x=>`<div class="v125-memory"><b>${x.title}</b><small>J${x.day} · ${x.season||""}</small></div>`).join("")||'<span class="muted small">Aucun souvenir marquant enregistré.</span>';
-    el.innerHTML+=`<div class="v125-panel"><div class="v125-title"><b>🧭 Moments charnières</b></div>${moments}</div><div class="v125-panel"><div class="v125-title"><b>🧠 Mémoire du parcours</b></div>${memories}</div>`;
-  };
-
-  // Make the run summary remember the player's identity instead of only its numeric results.
-  const oldFinish=finishRun;
-  finishRun=function(outcome){
-    if(S){S.career=S.career||{};S.career.legacy=S.career.legacy||[];S.career.legacy.push({traits:[...(S.traits||[])],route:S.quirklessRoute&&S.quirklessRoute.primary||S.career.path,memories:(S.memories||[]).slice(0,6),day:S.day});S.career.legacy=S.career.legacy.slice(-5);}
-    return oldFinish(outcome);
-  };
-
-  // Migration and new-game initialization for V12.5.
-  const oldStart=startGame;
-  startGame=function(){const r=oldStart();v125Init();saveGame();return r;};
-  const oldLoad=loadGame;
-  loadGame=function(){const r=oldLoad();if(S){v125Init();saveGame();render();}return r;};
-
-  // Header/version labels.
-  document.querySelectorAll('.tag').forEach(el=>{if(el.textContent.trim()==='V11')el.textContent='V12.5';});
-  document.title='MHA Road — V13.4';
-
-  // Remove all legacy top-of-page jumps left by V11/V12 wrappers.
-  const css=document.createElement('style');css.textContent=`
-    .v125-panel{margin-top:10px;padding:13px;border:1px solid rgba(126,145,255,.16);background:linear-gradient(145deg,rgba(18,27,45,.82),rgba(9,14,24,.9));border-radius:16px}
-    .v125-title{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px}.v125-pills{display:flex;flex-wrap:wrap;gap:6px}.v125-pill{padding:6px 9px;border-radius:999px;border:1px solid #344b77;background:#101d32;font-size:11px}.v125-moment,.v125-memory{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)}.v125-moment:last-child,.v125-memory:last-child{border-bottom:0}.v125-moment small,.v125-memory small{color:#7f8ba2;white-space:nowrap}
-  `;document.head.appendChild(css);
-
-  // If a V12 save was already loaded before this layer, migrate it immediately.
-  if(S){v125Init();saveGame();try{render();}catch(_){} }
-})();
-
-
-
-/* ========================= MHA ROAD V13 — ALTER & LIVING WORLD ========================= */
-(function(){
   const V13=13;
   const rarityWeights=[['Commun',45],['Peu commun',25],['Rare',15],['Épique',8],['Légendaire',5],['Mythique',2]];
   const families=[
@@ -2163,18 +1913,6 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
     else if(a)html.innerHTML=`<b>🧬 ${a.name}</b><span class="tag">${a.rarity}</span><p class="small">${a.desc}</p><p class="small muted">Contrecoup : ${a.weak}</p><p class="small">Décisions propres à cet Alter : ${(S.v13.alterChoices||[]).length}/4</p>`;
     el.appendChild(html);
   }
-  const oldStart=startGame;
-  startGame=function(){
-    const sel=q('quirkSituation');if(sel)sel.value='unknown';
-    oldStart();init();
-    S.quirk=null;S.quirkLevel=0;S.quirkXP=0;S.v13.discovery={status:'unknown',checks:0,manifestation:0,rarity:null};
-    S.flags.quirkMystery=true;S.flags.quirkRevealed=false;
-    saveGame();render();
-  };
-  const oldReveal=window.revealQuirk||revealQuirk;
-  window.revealQuirk=function(){return reveal()};
-  const oldGenerate=generateEvent;
-  // V13 event director: strong anti-loop selection with context + history.
   function v13PickEvent(){
     if(!S)return null;
     const all=EVENTS.filter(e=>{try{return compatible(e)}catch(_){return false}});
@@ -2205,356 +1943,365 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
     });
     return pick(weighted)||pool[0];
   }
-  generateEvent=function(isFinale=false){
-    init();
-    if(isFinale){oldGenerate(true);return;}
-    const special=maybeSecretAFO()||afoOffer()||uniqueEvent()||discoveryEvent();
-    // Special Alter/secret events are protected from spam: once shown, their id enters history.
+  // Register consequence events exactly once.
+  V125_ARCS.concat(V125_SECRET).forEach(e=>{
+    if(!EVENTS.some(x=>x.id===e.id))EVENTS.push(e);
+  });
+
+  // Capture the actual base functions once. No wrapper chain is created.
+  const CORE={
+    modStat:modStat,
+    generateEvent:generateEvent,
+    startGame:startGame,
+    loadGame:loadGame,
+    renderPower:renderPower,
+    renderCareer:renderCareer,
+    finishRun:finishRun,
+    migrateState:migrateState
+  };
+
+  v11Init();
+  v125Init();
+  init();
+
+  // Small, controlled stat gains.
+  modStat=function(key,value){
+    if(S&&S._cleanActionContext){
+      const limit=S._cleanMajorAction?2:1;
+      if(value>0)value=Math.min(value,limit);
+      if(value<0)value=Math.max(value,-limit);
+    }
+    return CORE.modStat(key,value);
+  };
+
+  function cleanRouteDetect(){
+    if(!S?.flags?.noQuirk)return;
+    const s=S.skills||{};
+    const scores={
+      Combattant:(s.combat||0)+(S.stats.force*.45)+(S.stats.technique*.25),
+      Stratège:(s.strategy||0)+(S.stats.intelligence*.5),
+      "Support Gear":(s.support||0)+(S.equipment.length*8),
+      Mobilité:(s.mobility||0)+(S.stats.vitesse*.45),
+      Protecteur:(s.protector||0)+(S.stats.defense*.35)+(S.stats.courage*.2),
+      Ingénieur:(s.engineer||0)+(S.stats.technique*.4)+(S.stats.intelligence*.3),
+      "Dépassement humain":(s.overcome||0)+(S.stats.endurance*.35)+(S.stats.courage*.3)
+    };
+    S.quirklessRoute.score=scores;
+    const sorted=Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+    if(sorted[0]&&sorted[0][1]>=24)S.quirklessRoute.primary=sorted[0][0];
+    if(sorted[1]&&sorted[1][1]>=20)S.quirklessRoute.secondary=sorted[1][0];
+  }
+
+  function cleanGenerateEvent(isFinale=false){
+    if(!S||combat)return;
+    v11Init();v125Init();init();
+
+    if(isFinale){
+      CORE.generateEvent(true);
+      return;
+    }
+
+    const eligible=[...V125_ARCS,...V125_SECRET].filter(e=>{try{return e.need()}catch(_){return false}});
+    const secrets=eligible.filter(e=>e.type==="Secret");
+    const arcs=eligible.filter(e=>e.type!=="Secret");
+
+    let special=null;
+    if(secrets.length && rnd(100)<4) special=pick(secrets);
+    else if(arcs.length && chance(.10)) special=pick(arcs);
+
+    if(!special) special=maybeSecretAFO()||afoOffer()||uniqueEvent()||discoveryEvent();
+
     if(special&&chance(.55)){
       currentEvent=special;
     }else if(chance(.08)){
-      const life=lifeEvent();
-      currentEvent=life||v13PickEvent();
+      currentEvent=lifeEvent()||v13PickEvent();
     }else{
       currentEvent=v13PickEvent();
     }
+
+    if(!currentEvent) CORE.generateEvent(false);
     if(!currentEvent)return;
+
     S.currentEventId=currentEvent.id;
     S.currentEventState={day:S.day,phase:S.phase,renderedAt:Date.now()};
     S.recentEvents=S.recentEvents||[];
     S.recentEvents.push(currentEvent.id);
     if(S.recentEvents.length>30)S.recentEvents.shift();
-    S.weekEventIds=S.weekEventIds||[];S.weekEventIds.push(currentEvent.id);
-  };
-  const oldChoose=choose;
-  choose=function(index){
-    const before=S&&S.quirk?S.quirkXP:0;
-    oldChoose(index);
-    if(S&&!S.runEnded){worldTick();
-      if(S.quirk&&S.quirkXP-before>=8&&S.quirkXP>=20&&!has('v13technique')){setFlag('v13technique');legendary('Première technique personnelle',`Tu commences à utiliser ${S.quirk.name} d’une manière qui t’appartient vraiment.`)}
-      if(S.rep>=45&&!has('v13recognized')){setFlag('v13recognized');legendary('Reconnaissance',`Ton nom commence à être connu pour ce que tu as réellement accompli.`)}
-      if((S.v13.life.social||0)>=5&&!has('v13social')){setFlag('v13social');legendary('Lien durable','Une relation importante a survécu à plusieurs saisons.');}
+    S.weekEventIds=S.weekEventIds||[];
+    S.weekEventIds.push(currentEvent.id);
+  }
+
+  generateEvent=cleanGenerateEvent;
+
+  function cleanAdvanceAfterChoice(){
+    if(!S||S.runEnded)return;
+
+    v11Init();v125Init();init();
+    S.seasonAction=(S.seasonAction||0)+1;
+    S.periodActions=S.seasonAction;
+    S.weeklyActions=S.seasonAction;
+    S.dayActions=S.seasonAction;
+
+    if(S.seasonAction>=5){
+      S.seasonFinale=true;
+      S.phase=`Finale de ${seasonName()}`;
+      cleanGenerateEvent(true);
       saveGame();render();
+      return;
     }
-  };
-  const oldRenderPower=renderPower;
-  renderPower=function(){oldRenderPower();renderV13()};
-  const oldFinish=finishRun;
-  finishRun=function(outcome){
-    if(S&&S.v13){S.v13.finalSnapshot={rarity:S.quirk?.rarity||null,alter:S.quirk?.name||'Sans Alter',moments:S.v13.legendaryMoments?.slice(-8)||[],career:S.career?.path||'student'};}
-    oldFinish(outcome);
-  };
-  // Initialise the layer for existing saves without changing their current Alter.
-  try{init()}catch(e){console.warn('V13 init',e)}
-  document.title='MHA Road — V13.4';
-})();
 
-/* V13 styling */
-(function(){
-  const st=document.createElement('style');st.textContent=`
-  .v13-alter-panel{margin-top:12px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(135deg,rgba(88,166,255,.08),rgba(180,100,255,.07));}
-  .v13-alter-panel .tag{float:right;margin-left:8px}
-  `;document.head.appendChild(st);
-})();
+    S.seasonFinale=false;
+    S.phase=seasonName();
+    v11AdvanceNPCs();
+    S.energy=clamp(S.energy+8,0,100);
+    S.hp=clamp(S.hp+4,0,S.maxHp);
+    cleanGenerateEvent(false);
+    saveGame();render();
+  }
 
-</script>
-<script>/* V13.1 CHOICE SAFETY LAYER — prevents dead choice buttons / double taps */
-(function(){
-  const previousChoose = window.choose;
-  window.choose = function(index){
-    const ev = window.currentEvent || (typeof currentEvent !== 'undefined' ? currentEvent : null);
-    if(!ev || !ev.choices || !ev.choices[index]) return;
-    if(typeof S !== 'undefined' && (S.awaitingContinue || window.combat)) return;
+  advanceAfterChoice=cleanAdvanceAfterChoice;
 
-    const buttons = document.querySelectorAll('#eventChoices .choice');
-    buttons.forEach(b=>{ b.disabled=true; b.style.pointerEvents='none'; });
+  function applyChoiceConsequences(label,result){
+    const text=`${label||""} ${result||""}`;
 
-    try {
-      return previousChoose(index);
-    } catch(err) {
-      console.error('MHA Road V13.1 choice error:', err);
-      try {
-        const label = ev.choices[index][0] || 'Action';
-        if(typeof log === 'function') log('⚠️ Une erreur est survenue pendant cette action. Le parcours continue sans bloquer la partie.');
-        if(typeof S !== 'undefined'){
-          S.currentEventId=null;
-          S.currentEventState=null;
-          S.awaitingContinue=true;
-          if(typeof setActionSummary==='function') setActionSummary(label,'L’action a rencontré un problème technique. Aucun choix supplémentaire n’est requis pour continuer.',{},'Protection anti-blocage');
-          if(typeof saveGame==='function') saveGame();
-          if(typeof render==='function') render();
-        }
-      } catch(recovery){ console.error('V13.1 recovery error:', recovery); }
+    v125TraitUpdate(text);
+    v125QuirkProgress(text);
+
+    if(/échec|échou|raté|perd|bless/i.test(text))
+      S.hidden.failureCount=(S.hidden.failureCount||0)+1;
+
+    if(/refus|fuir|abandon/i.test(text)&&/tuer|mort|meurtr/i.test(text))
+      S.hidden.refusedKill=true;
+
+    if(/proté|sauve|secour|aide/i.test(text))
+      S.hidden.inheritScore=(S.hidden.inheritScore||0)+1;
+
+    v125MaybeArcMemory();
+    v125MaybeLegacyFlag();
+
+    if(S.flags?.noQuirk){
+      const t=text.toLowerCase();
+      S.skills=S.skills||{};
+      if(/analy|observer|étudier|plan|strat/.test(t))S.skills.strategy=(S.skills.strategy||0)+1;
+      if(/combat|frapper|duel|attaque/.test(t))S.skills.combat=(S.skills.combat||0)+1;
+      if(/protéger|secours|aider|sauver/.test(t))S.skills.protector=(S.skills.protector||0)+1;
+      if(/équipement|matériel|support|outil/.test(t))S.skills.support=(S.skills.support||0)+1;
+      if(/fuir|éviter|esquive|mobilité|courir/.test(t))S.skills.mobility=(S.skills.mobility||0)+1;
+      if(/constru|invent|réparer|atelier/.test(t))S.skills.engineer=(S.skills.engineer||0)+1;
+      if(/entraîner|endur|dépass/.test(t))S.skills.overcome=(S.skills.overcome||0)+1;
+      cleanRouteDetect();
     }
-  };
-})();
-</script><!-- V13 DEPTH / CONSEQUENCE LAYER -->
-<script>
-(function(){
-  const V13D={
-    consequenceEvents:[],
-    ensure(){
-      S.v13d=S.v13d||{};
-      S.v13d.choiceStyle=S.v13d.choiceStyle||{risk:0,analysis:0,care:0,independence:0};
-      S.v13d.flags=S.v13d.flags||{};
-      S.v13d.echoes=S.v13d.echoes||[];
-      S.v13d.choiceLog=S.v13d.choiceLog||[];
-      S.v13d.recentDomains=S.v13d.recentDomains||[];
-    },
-    classify(label){
-      const t=(label||'').toLowerCase();
-      if(/forcer|risque|attaq|provoqu|foncer|tout donner|défier|sacrifice|brute/.test(t))return 'risk';
-      if(/analys|observer|preuve|réfléch|stratég|comprendre|étudier|attendre|prudent/.test(t))return 'analysis';
-      if(/aider|protéger|soutenir|coopér|confiance|secour|partager|camarade/.test(t))return 'care';
-      if(/autonom|indépend|refuser|seul|improvis|changer|voie personnelle/.test(t))return 'independence';
-      return null;
-    },
-    note(label,result,eventId){
-      this.ensure();
-      const style=this.classify(label);
-      if(style)this.Sstyle(style);
-      const important=!!(style||/rival|ami|bless|alter|stage|mission|festival|prof|villain|héros/i.test((result||'')+' '+(label||'')));
-      if(important){
-        this.Sstyle('');
-        S.v13d.choiceLog.unshift({day:S.day,season:seasonName(),event:eventId,label,result:result||'',style:style||'neutral'});
-        S.v13d.choiceLog=S.v13d.choiceLog.slice(0,30);
-      }
-      this.updateFlags(label,result);
-    },
-    Sstyle(style){if(style)S.v13d.choiceStyle[style]=(S.v13d.choiceStyle[style]||0)+1},
-    updateFlags(label,result){
-      const t=((label||'')+' '+(result||'')).toLowerCase();
-      if(/aider|protéger|secour/.test(t))S.v13d.flags.helpful=true;
-      if(/refus|refuser|seul|indépend/.test(t))S.v13d.flags.independent=true;
-      if(/risque|forcer|sacrifice|foncer/.test(t))S.v13d.flags.riskTaker=true;
-      if(/analyser|analyse|observer|preuve|réfléch/.test(t))S.v13d.flags.analytical=true;
-      if(/échec|perds|échoue|raté/.test(t))S.v13d.flags.failure=true;
-      if(/bless/.test(t))S.v13d.flags.injuryMemory=true;
-    },
-    addEchoes(){
-      this.ensure();
-      const E=this.consequenceEvents;
-      if(!E.length){
-        E.push(
-          {id:'v13d_echo_help',type:'Mémoire',title:'Quelqu’un se souvient de ton aide',weight:3,need:()=>S.v13d.flags.helpful&&S.day>2,text:()=>`Une personne que tu as aidée récemment revient vers toi. Elle n’a pas oublié ce que tu as fait.`,choices:[
-            ['Prendre le temps de l’écouter',()=>{modRel('Izuku',2);remember('Conséquence','Ton aide passée a créé un lien durable.');return 'Tu prends le temps de l’écouter. Le lien devient plus personnel.'}],
-            ['Lui proposer une solution',()=>{modStat('intelligence',1);return 'Tu cherches immédiatement une solution concrète. On te voit désormais comme quelqu’un de fiable.'}],
-            ['Lui dire de se débrouiller',()=>{S.rep-=1;return 'Tu refuses de devenir son soutien permanent. Cette limite peut changer votre relation.'}]
-          ]},
-          {id:'v13d_echo_risk',type:'Mémoire',title:'Le prix d’une ancienne prise de risque',weight:3,need:()=>S.v13d.flags.riskTaker&&S.day>3,text:()=>`Un professeur revient sur une décision risquée que tu avais prise. Il veut savoir si tu as appris quelque chose.`,choices:[
-            ['Assumer et recommencer autrement',()=>{modStat('courage',1);return 'Tu assumes ton erreur sans renier ton audace. Le professeur semble apprécier cette maturité.'}],
-            ['Expliquer ton raisonnement',()=>{modStat('intelligence',1);return 'Tu expliques précisément pourquoi tu avais pris ce risque. La discussion devient instructive.'}],
-            ['Dire que tu recommencerais',()=>{modStat('courage',1);S.rep+=1;return 'Tu assumes complètement ton choix. Certains admirent ton aplomb, d’autres commencent à te surveiller.'}]
-          ]},
-          {id:'v13d_echo_analysis',type:'Mémoire',title:'Ton analyse commence à être reconnue',weight:3,need:()=>S.v13d.flags.analytical&&S.day>3,text:()=>`On te demande ton avis avant une décision importante. Tes précédentes analyses ont laissé une impression.`,choices:[
-            ['Donner une analyse complète',()=>{modStat('intelligence',1);return 'Tu exposes calmement les risques et les options. Ton avis gagne en poids.'}],
-            ['Demander plus d’informations',()=>{modStat('technique',1);return 'Tu refuses de conclure trop vite. Cette prudence te donne accès à de nouvelles informations.'}],
-            ['Laisser les autres décider',()=>{modStat('courage',1);return 'Tu choisis de ne pas porter la décision seul. Cette retenue est remarquée.'}]
-          ]},
-          {id:'v13d_echo_failure',type:'Mémoire',title:'Ton ancien échec revient sur la table',weight:2,need:()=>S.v13d.flags.failure&&S.day>4,text:()=>`Une nouvelle situation ressemble étrangement à un échec précédent. Cette fois, tu peux agir autrement.`,choices:[
-            ['Reproduire ton ancienne méthode',()=>{modStat('courage',1);return 'Tu assumes que ta méthode peut fonctionner si tu la pousses davantage.'}],
-            ['Changer complètement d’approche',()=>{modStat('intelligence',1);modStat('technique',1);return 'Tu refuses de répéter le passé et changes de méthode.'}],
-            ['Demander de l’aide',()=>{S.hidden.selflessCount=(S.hidden.selflessCount||0)+1;return 'Tu demandes de l’aide au lieu de laisser l’échec décider à ta place.'}]
-          ]},
-          {id:'v13d_injury_echo',type:'Mémoire',title:'Une ancienne blessure se rappelle à toi',weight:2,need:()=>S.v13d.flags.injuryMemory&&S.day>3,text:()=>`Une douleur familière apparaît pendant l’effort. Rien de grave pour l’instant, mais ton corps te rappelle ses limites.`,choices:[
-            ['Ralentir et protéger la zone',()=>{S.energy=clamp(S.energy+4,0,100);return 'Tu adaptes ton rythme. Tu gagnes moins aujourd’hui, mais tu évites d’aggraver la situation.'}],
-            ['Continuer malgré la douleur',()=>{S.energy=clamp(S.energy-8,0,100);modStat('endurance',1);return 'Tu continues. Ton endurance progresse, mais le risque augmente.'}],
-            ['Repenser complètement ton entraînement',()=>{modStat('technique',1);return 'Tu transformes la contrainte en problème technique et cherches une nouvelle méthode.'}]
-          ]}
-        );
-        E.forEach(e=>{if(!EVENTS.some(x=>x.id===e.id))EVENTS.push(e)});
-      }
+
+    if(S.rep>=45&&!has("v13recognized")){
+      setFlag("v13recognized");
+      legendary("Reconnaissance","Ton nom commence à être connu pour ce que tu as réellement accompli.");
     }
-  };
-  V13D.ensure(); V13D.addEchoes();
-  const baseChoose=choose;
-  choose=function(index){
-    const ev=currentEvent; const choice=ev&&ev.choices&&ev.choices[index];
-    const label=choice&&choice[0]||'';
-    const beforeLog=S.v13d?.choiceLog?.length||0;
-    baseChoose(index);
-    try{V13D.ensure();V13D.note(label,(S.logs&&S.logs[0])||'',ev&&ev.id);}
-    catch(e){console.warn('V13 depth choice',e)}
-    saveGame();
-  };
-  const baseGenerate=generateEvent;
-  generateEvent=function(isFinale){
-    V13D.ensure(); V13D.addEchoes();
-    if(!isFinale){
-      const eligible=EVENTS.filter(e=>{try{return e.type==='Mémoire'&&compatible(e)&&!(S.seen&&S.seen[e.id])}catch(_){return false}});
-      if(eligible.length && chance(.24)){
-        currentEvent=pick(eligible);
-        S.currentEventId=currentEvent.id;S.currentEventState={day:S.day,phase:S.phase,renderedAt:Date.now()};
-        S.recentEvents=S.recentEvents||[];S.recentEvents.push(currentEvent.id);if(S.recentEvents.length>30)S.recentEvents.shift();
-        S.weekEventIds=S.weekEventIds||[];S.weekEventIds.push(currentEvent.id);
+    if((S.v13.life.social||0)>=5&&!has("v13social")){
+      setFlag("v13social");
+      legendary("Lien durable","Une relation importante a survécu à plusieurs saisons.");
+    }
+    if(S.quirk&&S.quirkXP>=20&&!has("v13technique")){
+      setFlag("v13technique");
+      legendary("Première technique personnelle",`Tu commences à utiliser ${S.quirk.name} d’une manière qui t’appartient vraiment.`);
+    }
+
+    worldTick();
+  }
+
+  function cleanChoose(index){
+    if(!S||!currentEvent||combat||S.awaitingContinue)return;
+
+    const c=currentEvent.choices?.[index];
+    if(!c)return;
+
+    const before=captureSnapshot();
+    const eventId=currentEvent.id;
+    const major=V11_MAJOR.has(currentEvent.type)||
+      currentEvent.type==="Fin"||
+      currentEvent.id.indexOf("seasonFinale")===0;
+
+    S._cleanActionContext=true;
+    S._cleanMajorAction=major;
+
+    try{
+      const result=c[1]();
+      if(result)log(result);
+
+      if(combat){
+        setActionSummary(c[0],result||"Le combat commence.",before,"Combat en cours");
+        saveGame();
+        render();
         return;
       }
-    }
-    baseGenerate(isFinale);
-  };
-  // Make repeated domains less likely when the engine has alternatives.
-  const baseRender=render;
-  render=function(){
-    try{V13D.ensure();}
-    catch(e){}
-    baseRender();
-  };
-  window.MHA_V13_DEPTH=V13D;
-})();
-</script>
 
+      S.seen[eventId]=(S.seen[eventId]||0)+1;
+      S.currentEventId=null;
+      S.currentEventState=null;
 
-<script>
-/* V13.3 — FINAL CHOICE DISPATCHER
-   Installed after every V13/V12/V11 choice wrapper so the visible buttons always
-   reach the final choice pipeline exactly once. */
-(function(){
-  let locked=false;
-  const latestChoose = (typeof choose === 'function') ? choose : null;
-  if(!latestChoose) return;
+      if(S.energy<0){
+        S.energy=0;
+        S.injuries.general=2;
+        log("La fatigue devient trop importante. Tu termines l’action épuisé.");
+      }
 
-  function finalChoose(index){
-    if(locked) return;
-    const ev = (typeof currentEvent !== 'undefined') ? currentEvent : null;
-    const state = (typeof S !== 'undefined') ? S : null;
-    if(!ev || !Array.isArray(ev.choices) || !ev.choices[index] || !state) return;
-    if(state.awaitingContinue) return;
+      applyChoiceConsequences(c[0],result);
 
-    locked=true;
-    const buttons=document.querySelectorAll('#eventChoices button.choice');
-    buttons.forEach(b=>{
-      b.disabled=true;
-      b.setAttribute('aria-disabled','true');
-      b.style.pointerEvents='none';
-    });
+      if(S.seasonFinale){
+        S.seasonHistory=S.seasonHistory||[];
+        S.seasonHistory.push({
+          year:S.lifeYear,
+          season:S.season,
+          name:seasonName(),
+          event:eventId,
+          rep:S.rep,
+          route:S.career.path
+        });
+        S.seasonHistory=S.seasonHistory.slice(-16);
 
-    try{
-      latestChoose(index);
+        S.seasonFinale=false;
+        S.seasonAction=0;
+        S.periodActions=0;
+        S.weeklyActions=0;
+        S.dayActions=0;
+
+        S.season=(S.season+1)%4;
+
+        if(S.season===0){
+          S.lifeYear=(S.lifeYear||1)+1;
+          S.day=(S.day||1)+364;
+          S.age=(S.startingAge||15)-1+S.lifeYear;
+          S.money+=Math.max(160,Math.round(220+(S.careerRank||0)*6));
+        }
+
+        S.phase=seasonName();
+        v11AdvanceNPCs();
+        cleanGenerateEvent(false);
+        setActionSummary(c[0],result||"La saison s’achève.",before,`Début de ${seasonName()}`);
+      }else{
+        setActionSummary(c[0],result||"Action terminée.",before);
+      }
+
+      S.awaitingContinue=true;
+      saveGame();
+      render();
+
     }catch(err){
-      console.error('MHA Road V13.3 choice error',err);
-      try{
-        const label=ev.choices[index][0]||'Action';
-        state.currentEventId=null;
-        state.currentEventState=null;
-        state.awaitingContinue=true;
-        if(typeof setActionSummary==='function') setActionSummary(label,'L’action a été enregistrée malgré une erreur interne. Tu peux continuer.',{},'Protection anti-blocage');
-        if(typeof saveGame==='function') saveGame();
-        if(typeof render==='function') render();
-      }catch(recovery){console.error('MHA Road V13.3 recovery error',recovery)}
-    }
-    setTimeout(()=>{locked=false;},120);
-  }
-
-  window.choose=finalChoose;
-  try{choose=finalChoose}catch(e){}
-
-  /* Re-enable freshly rendered choices. */
-  const originalRenderEvent=(typeof renderEvent==='function')?renderEvent:null;
-  if(originalRenderEvent){
-    window.renderEvent=function(){
-      originalRenderEvent();
-      document.querySelectorAll('#eventChoices button.choice').forEach(b=>{
-        b.disabled=false;
-        b.removeAttribute('aria-disabled');
-        b.style.pointerEvents='auto';
-      });
-    };
-    try{renderEvent=window.renderEvent}catch(e){}
-  }
-})();
-</script>
-
-
-<script>
-/* MHA ROAD V13.4 — CLICK BRIDGE + BUILD MARKER
-   One delegated handler owns visible choice buttons. This avoids relying on
-   stacked inline onclick handlers and survives every render(). */
-(function(){
-  window.MHA_ROAD_BUILD = 'V13.4-CLICKFIX-2026-10-07';
-  document.title='MHA Road — V13.4';
-
-  function unlockChoices(){
-    document.querySelectorAll('#eventChoices button.choice').forEach(function(b){
-      b.disabled=false;
-      b.removeAttribute('aria-disabled');
-      b.style.pointerEvents='auto';
-      b.dataset.mhaLocked='0';
-    });
-  }
-
-  // Capture phase: this runs before a button's old onclick, so there is exactly
-  // one route into the final dispatcher.
-  document.addEventListener('click', function(ev){
-    var target=ev.target && ev.target.closest ? ev.target.closest('#eventChoices button.choice') : null;
-    if(!target) return;
-    var box=document.getElementById('eventChoices');
-    if(!box || !box.contains(target)) return;
-
-    var buttons=box.querySelectorAll('button.choice');
-    var index=Array.prototype.indexOf.call(buttons,target);
-    if(index<0) return;
-
-    ev.preventDefault();
-    ev.stopImmediatePropagation();
-
-    if(target.dataset.mhaLocked==='1') return;
-    var state=(typeof S!=='undefined')?S:null;
-    var evnt=(typeof currentEvent!=='undefined')?currentEvent:null;
-    if(!state || !evnt || !evnt.choices || !evnt.choices[index]) return;
-    if(state.awaitingContinue || (typeof combat!=='undefined' && combat)) return;
-
-    buttons.forEach(function(b){
-      b.disabled=true;
-      b.dataset.mhaLocked='1';
-      b.style.pointerEvents='none';
-    });
-
-    try{
-      if(typeof window.choose==='function') window.choose(index);
-      else if(typeof choose==='function') choose(index);
-      else throw new Error('choose indisponible');
-    }catch(err){
-      console.error('MHA Road V13.4 click error',err);
-      // Never leave the UI dead after a JavaScript exception.
-      try{
-        state.currentEventId=null;
-        state.currentEventState=null;
-        state.awaitingContinue=true;
-        if(typeof setActionSummary==='function') setActionSummary(evnt.choices[index][0]||'Action','L’action a été enregistrée malgré une erreur technique.',{},'Protection anti-blocage');
-        if(typeof saveGame==='function') saveGame();
-        if(typeof render==='function') render();
-      }catch(recovery){ console.error('MHA Road V13.4 recovery error',recovery); }
+      console.error("MHA Road clean choice error",err);
+      S.currentEventId=null;
+      S.currentEventState=null;
+      S.awaitingContinue=true;
+      setActionSummary(
+        c[0],
+        "L’action a été enregistrée malgré une erreur interne.",
+        before,
+        "Protection du moteur"
+      );
+      saveGame();
+      render();
     }finally{
-      setTimeout(unlockChoices,0);
-    }
-  }, true);
-
-  // Any normal render creates fresh buttons; make sure they are physically tappable.
-  var oldRenderEvent = (typeof window.renderEvent==='function') ? window.renderEvent : null;
-  if(oldRenderEvent && !window.__mhaV134RenderWrapped){
-    window.__mhaV134RenderWrapped=true;
-    window.renderEvent=function(){
-      var r=oldRenderEvent.apply(this,arguments);
-      unlockChoices();
-      return r;
-    };
-    try{ renderEvent=window.renderEvent; }catch(e){}
-  }
-
-  // Visible build stamp, so it is immediately obvious which HTML is loaded.
-  function stamp(){
-    var host=document.querySelector('.top') || document.body;
-    if(!document.getElementById('mhaBuildStamp')){
-      var s=document.createElement('span');
-      s.id='mhaBuildStamp';
-      s.textContent='V13.4';
-      s.style.cssText='position:fixed;right:8px;top:6px;z-index:99999;font:700 10px system-ui;opacity:.45;pointer-events:none;';
-      document.body.appendChild(s);
+      S._cleanActionContext=false;
+      S._cleanMajorAction=false;
     }
   }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',stamp); else stamp();
+
+  // THE ONLY choice handler.
+  choose=cleanChoose;
+  window.choose=cleanChoose;
+
+  // Combat scaling is defined once.
+  const CORE_START_COMBAT=startCombat;
+  startCombat=function(enemy,hp){
+    CORE_START_COMBAT(enemy,Math.max(32,Math.round(hp*.72)));
+  };
+
+  function cleanStartGame(){
+    CORE.startGame();
+    v11Init();v125Init();init();
+    S.quirk=null;
+    S.quirkLevel=0;
+    S.quirkXP=0;
+    S.v13.discovery={status:"unknown",checks:0,manifestation:0,rarity:null};
+    S.flags.quirkMystery=true;
+    S.flags.quirkRevealed=false;
+    saveGame();
+    render();
+  }
+  startGame=cleanStartGame;
+
+  function cleanLoadGame(){
+    CORE.loadGame();
+    if(S){
+      v11Init();v125Init();init();
+      cleanRouteDetect();
+    }
+    render();
+  }
+  loadGame=cleanLoadGame;
+
+  function cleanRenderPower(){
+    CORE.renderPower();
+    cleanRouteDetect();
+    renderV13();
+  }
+  renderPower=cleanRenderPower;
+
+  function cleanRenderCareer(){
+    CORE.renderCareer();
+    if(!S)return;
+    const el=q("careerPanel");
+    if(!el)return;
+
+    const top=Object.entries(S.npcWorld||{})
+      .sort((a,b)=>(b[1].level||0)-(a[1].level||0))
+      .slice(0,6)
+      .map(([n,x])=>`<div class="relation"><div class="top"><b>${n}</b><span class="tag">Niv. ${Math.round(x.level||0)}</span></div><div class="small muted">Objectif : ${x.goal||"progresser"} · lien ${Math.round(S.relations[n]||0)}</div></div>`)
+      .join("");
+
+    el.innerHTML+=`<div class="v11-world"><b>🌍 Monde vivant</b><p class="small muted">Les autres élèves et professionnels progressent même lorsque tu ne les suis pas.</p>${top}</div>
+    <div class="v11-world"><b>🗓️ Saisons vécues</b><p class="small">${(S.seasonHistory||[]).slice(-6).map(x=>`Année ${x.year} · ${["Printemps","Été","Automne","Hiver"][x.season]} · ${x.name}`).join("<br>")||"Aucune saison terminée."}</p></div>`;
+  }
+  renderCareer=cleanRenderCareer;
+
+  function cleanFinishRun(outcome){
+    if(S&&S.v13){
+      S.v13.finalSnapshot={
+        rarity:S.quirk?.rarity||null,
+        alter:S.quirk?.name||"Sans Alter",
+        moments:S.v13.legendaryMoments?.slice(-8)||[],
+        career:S.career?.path||"student"
+      };
+    }
+    return CORE.finishRun(outcome);
+  }
+  finishRun=cleanFinishRun;
+
+  function cleanMigrateState(){
+    CORE.migrateState();
+    if(S){
+      v11Init();v125Init();init();
+      if(S.schoolStage==="college"&&S.school&&S.school!=="Collège — classe de 4e")
+        S.schoolStage="highschool";
+      if(S.school==="U.A. — Filière héroïque")S.career.path="hero";
+      if(S.school==="U.A. — Filière générale")S.career.path="hero_candidate";
+      if(S.school==="Shiketsu")S.career.path="hero";
+      if(S.school==="Lycée normal")S.career.path="civil";
+    }
+  }
+  migrateState=cleanMigrateState;
+
+  // Ensure old saves become compatible without altering a fresh run's hidden Alter.
+  if(S){
+    v11Init();
+    v125Init();
+    init();
+    cleanRouteDetect();
+    render();
+  }
 })();
-</script>
 
+
+
+
+</script>
 </body>
 </html>
