@@ -214,12 +214,12 @@ button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 <body>
 <div class="wrap">
 <header class="top">
-  <div><div class="brand">⚡ MHA ROAD <span class="tag">V13</span></div><div class="sub">RPG narratif procédural · monde vivant · saisons · routes divergentes · carrière jusqu’à la retraite · hors ligne</div></div>
+  <div><div class="brand">⚡ MHA ROAD <span class="tag">V14</span></div><div class="sub">RPG narratif procédural · monde vivant · saisons · routes divergentes · carrière jusqu’à la retraite · hors ligne</div></div>
   <div><button onclick="saveGame()">💾</button><button onclick="exportSave()">↥</button></div>
 </header>
 
 <section id="menu" class="card menu-hero">
-<div class="top"><div><div class="brand">⚡ MHA ROAD</div><div class="sub">Mode carrière · progression roguelite</div></div><span class="tag">V13</span></div>
+<div class="top"><div><div class="brand">⚡ MHA ROAD</div><div class="sub">Mode carrière · progression roguelite</div></div><span class="tag">V14</span></div>
 <div class="grid3" style="margin-top:14px"><div class="metric">🏆<div><span class="small muted">Runs</span><b id="metaRuns">0</b></div></div><div class="metric">☠️<div><span class="small muted">Décès</span><b id="metaDeaths">0</b></div></div><div class="metric">💎<div><span class="small muted">Crédits</span><b id="metaCredits">0</b></div></div></div>
 <div id="lastRun" class="notice" style="display:none"></div><div id="metaAchievements" class="notice" style="display:none"></div>
 <div class="menu-actions"><button class="primary" onclick="showCreation()">▶️ Nouvelle carrière</button><button onclick="showShop()">🛒 Boutique</button><button onclick="importSave()">📥 Importer une partie</button><button onclick="loadGame()">💾 Reprendre la dernière partie</button></div>
@@ -228,7 +228,7 @@ button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 <section id="shop" class="card hidden"><div class="top"><div><h2>🛒 Boutique de méta-progression</h2><div class="muted">Les achats deviennent des bonus de départ consommables lors de la prochaine carrière.</div></div><button onclick="showMenu()">← Menu</button></div><div class="metric" style="margin-bottom:10px">💎 Crédits disponibles <b id="shopCredits">0</b></div><div id="shopList" class="shop-grid"></div></section>
 <section id="creation" class="creation-shell">
 <div class="creation-hero">
-<div class="eyebrow">MHA ROAD · V13</div>
+<div class="eyebrow">MHA ROAD · V14</div>
 <h1>Construis ton histoire.</h1>
 <p>Tu ne choisis pas une destinée. Tu crées un parcours, et le monde réagit à tes décisions.</p>
 <div class="creation-badges"><span>⚡ Progression dynamique</span><span>🌍 Monde vivant</span><span>🎲 Événements procéduraux</span></div>
@@ -1216,30 +1216,7 @@ function generateEvent(isFinale=false){
  S.currentEventId=chosen.id;
  S.currentEventState={day:S.day,phase:S.phase,renderedAt:Date.now()};
 }
-function choose(index){
- if(!currentEvent||combat||S.awaitingContinue)return;
- const c=currentEvent.choices[index];if(!c)return;
- const before=captureSnapshot();
- const eventId=currentEvent.id;
- const result=c[1]();
- if(result)log(result);
- recordChoiceMemory(c[0],result||"");
- if(combat){
-   setActionSummary(c[0],result||"Le combat commence.",before,"Combat en cours");
-   S.awaitingContinue=false;
-   saveGame();render();return;
- }
- S.seen[eventId]=(S.seen[eventId]||0)+1;
- if(S.seasonFinale){ S.seasonFinale=false; }
- S.currentEventId=null;S.currentEventState=null;
- if(S.energy<0){S.energy=0;S.injuries.general=2;log("La fatigue devient trop importante. Tu termines la semaine épuisé.")}
- updateRelationshipTypes();checkMilestones();
- setActionSummary(c[0],result||"Action terminée.",before);
- S.awaitingContinue=true;
- saveGame();render();
-}
 
-window.__MHA_CORE_CHOOSE__=choose;
 function remember(title,text){
  if(!S.memories)S.memories=[];
  S.memories.unshift({title,text,day:S.day,season:seasonName()});
@@ -1435,7 +1412,7 @@ function renderEvent(){
  q("eventTitle").textContent=currentEvent.title;q("eventType").textContent=currentEvent.type;
  q("eventText").textContent=typeof currentEvent.text==="function"?currentEvent.text():currentEvent.text;
  q("eventChoices").innerHTML="";
- currentEvent.choices.forEach((c,i)=>{const b=document.createElement("button");b.className="choice";b.innerHTML=`${i+1}. ${c[0]}`;q("eventChoices").appendChild(b)});
+ currentEvent.choices.forEach((c,i)=>{const b=document.createElement("button");b.type="button";b.className="choice";b.innerHTML=`${i+1}. ${c[0]}`;b.addEventListener("click",()=>window.choose(i),{once:true});q("eventChoices").appendChild(b)});
 }
 function renderStats(){
  q("statsList").innerHTML=Object.entries(S.stats).map(([k,v])=>`<div class="stat"><span>${STAT_LABEL[k]}</span><div class="bar"><div class="fill" style="width:${v}%"></div></div><b>${Math.round(v)}</b></div>`).join("");
@@ -1883,7 +1860,7 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
     if(S.day<2)return null;
     const pool=[
       {id:'v13-work',title:'💼 Un petit travail',text:'Tes ressources diminuent. Tu peux gagner un peu d’argent sans abandonner tes études.',choices:[['Travailler',()=>{const gain=60+Math.floor(rnd(80));S.money+=gain;S.v13.life.work++;S.v13.moneyHistory.push({day:S.day,delta:gain,why:'travail'});return`Tu travailles quelques heures. +${gain} ¥.`}],['Refuser',()=>{S.v13.life.study++;modStat('intelligence',1);return'Tu préfères consacrer ton temps à tes études.'}]]},
-      {id:'v13-equipment',title:'🛠️ Une idée d’équipement',text:'Tu peux investir dans du matériel pour compléter ton style.',choices:[['Investir',()=>{if(S.money<80)return'Tu n’as pas assez d’argent.';S.money-=80;S.equipment.push({name:'Prototype V13',bonus:2});S.v13.life.work++;return'Tu finances un prototype. Ton équipement devient plus personnel.'}],['Économiser',()=>{S.money+=20;return'Tu gardes ton argent pour une dépense plus importante.'}]]},
+      {id:'v13-equipment',title:'🛠️ Une idée d’équipement',text:'Tu peux investir dans du matériel pour compléter ton style.',choices:[['Investir',()=>{if(S.money<80)return'Tu n’as pas assez d’argent.';S.money-=80;S.equipment.push({name:'Prototype V14',bonus:2});S.v13.life.work++;return'Tu finances un prototype. Ton équipement devient plus personnel.'}],['Économiser',()=>{S.money+=20;return'Tu gardes ton argent pour une dépense plus importante.'}]]},
       {id:'v13-social',title:'☕ Vie sociale',text:'Une relation importante réclame ton attention.',choices:[['Passer du temps avec quelqu’un',()=>{const n=pick(REL_NAMES);modRel(n,5);S.v13.life.social++;return`Tu prends du temps pour ${n}. Votre relation se renforce.`}],['Rester seul',()=>{modStat('intelligence',1);return'Tu profites du calme pour réfléchir.'}]]}
     ];
     return pick(pool);
