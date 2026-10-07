@@ -91,6 +91,125 @@ body{overscroll-behavior-y:none}
 .v12-empty{padding:24px;text-align:center;color:var(--muted);border:1px dashed #2b3b57;border-radius:16px}
 @media(min-width:700px){#game{max-width:720px}.v12-nav{max-width:620px;left:50%;right:auto;transform:translateX(-50%);border:1px solid var(--v12line);border-bottom:0;border-radius:18px 18px 0 0}.v12-topbar{top:0}}
 </style>
+
+<style id="v13-responsive-relations-fix">
+/* V13.2 — adaptive UI for every iPhone size */
+html,body{width:100%;min-width:0;overflow-x:hidden}
+body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+.wrap{width:100%;max-width:960px;margin:0 auto;padding-left:clamp(8px,3vw,18px);padding-right:clamp(8px,3vw,18px)}
+#game{width:min(100%,720px);max-width:720px;padding-left:clamp(0px,1vw,8px);padding-right:clamp(0px,1vw,8px)}
+.card,.v12-story,.v12-panel,.v12-world-card,.action-summary{max-width:100%;overflow-wrap:anywhere}
+.top{min-width:0}.top>div:first-child{min-width:0}.brand,.sub{overflow-wrap:anywhere}
+.grid,.grid3,.creation-grid,.shop-grid,.menu-actions,.combat-grid,.res,.v12-grid2{width:100%;min-width:0}
+button,input,select{max-width:100%;font:inherit}
+button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.choice{white-space:normal;line-height:1.35;overflow-wrap:anywhere}
+.v12-story p,.v12-result,.v12-memory,.notice{overflow-wrap:anywhere}
+.v12-nav{padding-left:max(7px,env(safe-area-inset-left));padding-right:max(7px,env(safe-area-inset-right));padding-bottom:max(7px,env(safe-area-inset-bottom))}
+.sticky-actions{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right));padding-bottom:max(8px,env(safe-area-inset-bottom))}
+@media(max-width:390px){
+ .wrap{padding-left:8px;padding-right:8px}.card{padding:13px;border-radius:17px}
+ .brand{font-size:18px}.sub{font-size:10px}.v12-story{padding:14px}.v12-story h2{font-size:20px}
+ .v12-hud{gap:4px}.v12-hud .mini{padding:6px 5px;font-size:9px}.v12-hud .mini b{font-size:12px}
+ .v12-nav button{min-height:47px;font-size:9px}.v12-nav button span{font-size:16px}
+ .choice{min-height:56px;padding:11px 12px;font-size:13px}
+ .current-stats,.delta-grid{grid-template-columns:1fr 1fr}
+ .stat{grid-template-columns:82px 1fr 34px;font-size:12px}
+}
+@media(min-width:391px) and (max-width:430px){
+ .wrap{padding-left:10px;padding-right:10px}.v12-story{padding:16px}.choice{font-size:14px}
+}
+@media(min-width:431px){
+ #game{padding-left:8px;padding-right:8px}.choice{font-size:14px}
+}
+@media(min-height:800px){.v12-topbar{padding-top:max(10px,env(safe-area-inset-top))}}
+</style>
+<script>
+/* V13.2 — relationship target integrity
+   Every relationship/social procedural event now has one explicit NPC target.
+   The same NPC is used in the text, title and every relationship-changing choice.
+*/
+(function(){
+  const PEOPLE=['Izuku','Ochaco','Shoto','Tenya','Eijiro','Momo','Tsuyu','Katsuki'];
+  function chooseTarget(){
+    if(!S) return PEOPLE[0];
+    /* Prefer someone the player has not recently interacted with, while keeping
+       the result deterministic enough to remain stable during a rendered event. */
+    const recent=(S.recentRelationshipTargets||[]).slice(-4);
+    const pool=PEOPLE.filter(n=>!recent.includes(n));
+    const target=pick(pool.length?pool:PEOPLE);
+    S.recentRelationshipTargets=S.recentRelationshipTargets||[];
+    S.recentRelationshipTargets.push(target);
+    S.recentRelationshipTargets=S.recentRelationshipTargets.slice(-8);
+    return target;
+  }
+  function targetFor(e){
+    if(e._relationshipTarget) return e._relationshipTarget;
+    e._relationshipTarget=chooseTarget();
+    return e._relationshipTarget;
+  }
+  function relationChoices(e){
+    const n=targetFor(e);
+    return [
+      ['Écouter et soutenir',()=>{modRel(n,5);S.hidden.selflessCount=(S.hidden.selflessCount||0)+1;S.v13.traits.social=(S.v13.traits.social||0)+1;return`Tu prends le temps d’écouter ${n}. Votre relation se renforce.`}],
+      ['Chercher une solution ensemble',()=>{modRel(n,3);modStat('intelligence',1);return`Tu aides ${n} à trouver une solution. Votre lien évolue grâce à cette coopération.`}],
+      ['Poser une limite claire',()=>{modRel(n,-1);modStat('courage',1);return`Tu es honnête avec ${n} et poses une limite. Le lien change, mais il devient plus clair.`}]
+    ];
+  }
+  function socialChoices(e){
+    const n=targetFor(e);
+    return [
+      [`Passer du temps avec ${n}`,()=>{modRel(n,5);S.v13.life.social=(S.v13.life.social||0)+1;S.energy=Math.max(0,(S.energy||0)-4);return`Tu passes un vrai moment avec ${n}. Cette relation compte désormais davantage dans ton quotidien.`}],
+      [`Inviter ${n} à faire quelque chose`,()=>{modRel(n,3);S.v13.life.social=(S.v13.life.social||0)+2;return`Tu proposes une activité à ${n}. Une nouvelle habitude commence à se créer entre vous.`}],
+      [`Prendre tes distances avec ${n}`,()=>{modRel(n,-2);return`Tu préfères garder tes distances avec ${n}. La relation devient plus froide pour le moment.`}]
+    ];
+  }
+  /* Replace generated relation/social events after all V13 diversity layers have run. */
+  function patchGenerated(){
+    if(typeof EVENTS==='undefined') return;
+    EVENTS.forEach(e=>{
+      if(!e||!e.id||!e.id.startsWith('v13-')) return;
+      if(e.type==='Relation'){
+        const n=targetFor(e);
+        e.title=`${e.title} — ${n}`;
+        e.text=()=>`${e.title}. ${n} est directement impliqué dans cette situation. La manière dont tu réagis fera évoluer votre relation.`;
+        e.choices=relationChoices(e);
+      }else if(e.type==='Social'){
+        const n=targetFor(e);
+        e.title=`${e.title} — avec ${n}`;
+        e.text=()=>`${e.title}. ${n} partage ce moment avec toi. Ce n’est pas un événement social générique : votre relation est au centre de la situation.`;
+        e.choices=socialChoices(e);
+      }
+    });
+    /* Fix the two legacy events whose displayed NPC and modified NPC could differ. */
+    const social=EVENTS.find(e=>e&&e.id==='social');
+    if(social){
+      const n=targetFor(social);
+      social.title=`Déjeuner avec ${n}`;
+      social.text=()=>`${n} te propose de manger avec toi. Une conversation ordinaire peut parfois changer une relation.`;
+      social.choices=[
+        [`Accepter et parler avec ${n}`,()=>{modRel(n,7);S.energy-=6;return`Tu passes un moment avec ${n}. Votre relation se renforce.`}],
+        ['Observer avant de parler',()=>{modStat('intelligence',2);S.energy-=3;return`Tu observes les dynamiques du groupe sans modifier directement une relation.`}],
+        [`Décliner pour t’entraîner`,()=>{modStat('force',2);S.energy-=10;return`Tu déclines l’invitation de ${n}. Tu privilégies ton entraînement aujourd’hui.`}]
+      ];
+    }
+    const crisis=EVENTS.find(e=>e&&e.id==='friendCrisis');
+    if(crisis){
+      const n=targetFor(crisis);
+      crisis.title=`${n} craque`;
+      crisis.text=()=>`${n} te confie qu’il pense ne pas être à la hauteur. Ce moment peut renforcer ou fragiliser votre relation.`;
+      crisis.choices=[
+        [`Écouter ${n} vraiment`,()=>{modRel(n,9);heroChoice();return`Tu prends le temps d’écouter ${n}.` }],
+        [`Proposer un entraînement à ${n}`,()=>{modRel(n,6);modStat('technique',2);return`Tu transformes le doute de ${n} en séance de travail.`}],
+        [`Dire à ${n} de se débrouiller`,()=>{modRel(n,-5);modStat('courage',2);return`Tu privilégies la responsabilité individuelle et laisses ${n} gérer seul cette difficulté.`}]
+      ];
+    }
+    /* Repair the old random-argument typo defensively if a future layer reintroduces it. */
+  }
+  try{patchGenerated()}catch(err){console.warn('V13.2 relationship patch',err)}
+})();
+</script>
+
 </head>
 <body>
 <div class="wrap">
@@ -2015,7 +2134,7 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
     const pool=[
       {id:'v13-work',title:'💼 Un petit travail',text:'Tes ressources diminuent. Tu peux gagner un peu d’argent sans abandonner tes études.',choices:[['Travailler',()=>{const gain=60+Math.floor(rnd(80));S.money+=gain;S.v13.life.work++;S.v13.moneyHistory.push({day:S.day,delta:gain,why:'travail'});return`Tu travailles quelques heures. +${gain} ¥.`}],['Refuser',()=>{S.v13.life.study++;modStat('intelligence',1);return'Tu préfères consacrer ton temps à tes études.'}]]},
       {id:'v13-equipment',title:'🛠️ Une idée d’équipement',text:'Tu peux investir dans du matériel pour compléter ton style.',choices:[['Investir',()=>{if(S.money<80)return'Tu n’as pas assez d’argent.';S.money-=80;S.equipment.push({name:'Prototype V13',bonus:2});S.v13.life.work++;return'Tu finances un prototype. Ton équipement devient plus personnel.'}],['Économiser',()=>{S.money+=20;return'Tu gardes ton argent pour une dépense plus importante.'}]]},
-      {id:'v13-social',title:'☕ Vie sociale',text:'Une relation importante réclame ton attention.',choices:[['Passer du temps avec quelqu’un',()=>{const n=pick(REL_NAMES);modRel(5,n);S.v13.life.social++;return`Tu prends du temps pour ${n}. Votre relation se renforce.`}],['Rester seul',()=>{modStat('intelligence',1);return'Tu profites du calme pour réfléchir.'}]]}
+      {id:'v13-social',title:'☕ Vie sociale',text:'Une relation importante réclame ton attention.',choices:[['Passer du temps avec quelqu’un',()=>{const n=pick(REL_NAMES);modRel(n,5);S.v13.life.social++;return`Tu prends du temps pour ${n}. Votre relation se renforce.`}],['Rester seul',()=>{modStat('intelligence',1);return'Tu profites du calme pour réfléchir.'}]]}
     ];
     return pick(pool);
   }
@@ -2283,5 +2402,66 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
     baseRender();
   };
   window.MHA_V13_DEPTH=V13D;
+})();
+</script>
+
+
+<script>
+/* V13.3 — FINAL CHOICE DISPATCHER
+   Installed after every V13/V12/V11 choice wrapper so the visible buttons always
+   reach the final choice pipeline exactly once. */
+(function(){
+  let locked=false;
+  const latestChoose = (typeof choose === 'function') ? choose : null;
+  if(!latestChoose) return;
+
+  function finalChoose(index){
+    if(locked) return;
+    const ev = (typeof currentEvent !== 'undefined') ? currentEvent : null;
+    const state = (typeof S !== 'undefined') ? S : null;
+    if(!ev || !Array.isArray(ev.choices) || !ev.choices[index] || !state) return;
+    if(state.awaitingContinue) return;
+
+    locked=true;
+    const buttons=document.querySelectorAll('#eventChoices button.choice');
+    buttons.forEach(b=>{
+      b.disabled=true;
+      b.setAttribute('aria-disabled','true');
+      b.style.pointerEvents='none';
+    });
+
+    try{
+      latestChoose(index);
+    }catch(err){
+      console.error('MHA Road V13.3 choice error',err);
+      try{
+        const label=ev.choices[index][0]||'Action';
+        state.currentEventId=null;
+        state.currentEventState=null;
+        state.awaitingContinue=true;
+        if(typeof setActionSummary==='function') setActionSummary(label,'L’action a été enregistrée malgré une erreur interne. Tu peux continuer.',{},'Protection anti-blocage');
+        if(typeof saveGame==='function') saveGame();
+        if(typeof render==='function') render();
+      }catch(recovery){console.error('MHA Road V13.3 recovery error',recovery)}
+    }
+    setTimeout(()=>{locked=false;},120);
+  }
+
+  window.choose=finalChoose;
+  try{choose=finalChoose}catch(e){}
+
+  /* Re-enable freshly rendered choices. */
+  const originalRenderEvent=(typeof renderEvent==='function')?renderEvent:null;
+  if(originalRenderEvent){
+    window.renderEvent=function(){
+      originalRenderEvent();
+      document.querySelectorAll('#eventChoices button.choice').forEach(b=>{
+        b.disabled=false;
+        b.removeAttribute('aria-disabled');
+        b.style.pointerEvents='auto';
+      });
+    };
+    try{renderEvent=window.renderEvent}catch(e){}
+  }
 })();
 </script>
