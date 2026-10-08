@@ -1,11 +1,1 @@
-{
-  "name": "MHA Road V18.1",
-  "short_name": "MHA Road",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#080d18",
-  "theme_color": "#080d18",
-  "lang": "fr",
-  "icons": [],
-  "version": "18.1"
-}
+{"name":"MHA Road V20","short_name":"MHA Road","start_url":"./index.html","display":"standalone","background_color":"#0b1020","theme_color":"#111827","lang":"fr","version":"20.0.0"}
